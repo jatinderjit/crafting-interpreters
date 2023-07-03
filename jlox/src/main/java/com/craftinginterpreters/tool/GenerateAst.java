@@ -58,20 +58,46 @@ public class GenerateAst {
     public static void generateFile(PrintWriter writer, List<Ast> objects) {
         writer.println("package com.craftinginterpreters.lox;");
         writer.println();
-        writer.print("abstract class " + baseName + " {");
+        writer.println("abstract class " + baseName + " {");
+        generateVisitorInterface(writer, objects);
+        writer.println();
+        writer.println(pad1 + "abstract <R> R accept(Visitor<R> visitor);");
         objects.forEach(ast -> generateAst(writer, ast));
         writer.println("}");
     }
 
+    public static void generateVisitorInterface(PrintWriter writer, List<Ast> objects) {
+        writer.println(pad1 + "interface Visitor<R> {");
+        objects.forEach(ast -> writer.println(
+                pad2 + "R visit" + ast.name + baseName + "("
+                        + ast.name + " " + baseName.toLowerCase() + ");")
+        );
+        writer.println(pad1 + "}");
+    }
+
     public static void generateAst(PrintWriter writer, Ast ast) {
         writer.println();
+
         writer.println(pad1 + "static class " + ast.name + " extends " + baseName + " {");
+
+        // Declare class variables
         ast.params.forEach(p -> writer.println(pad2 + "final " + p + ";"));
         writer.println();
+
+        // Constructor
         String params = ast.params.stream().map(Param::toString).collect(Collectors.joining(", "));
         writer.println(pad2 + ast.name + "(" + params + ") {");
         ast.params.forEach(p -> writer.println(pad3 + "this." + p.name + " = " + p.name + ";"));
         writer.println(pad2 + "}");
+        writer.println();
+
+        // Implement accept method
+        writer.println(pad2 + "@Override");
+        writer.println(pad2 + "<R> R accept(Visitor<R> visitor) {");
+        writer.println(pad3 + "return visitor.visit" + ast.name + baseName + "(this);");
+        writer.println(pad2 + "}");
+
+        // Terminate class
         writer.println(pad1 + "}");
     }
 }
