@@ -9,7 +9,7 @@
 ### Scanning / Lexing / Lexical Analysis
 
 A **scanner** (or **lexer**) takes a stream of characters andchunks them into a
-series **tokens**, like `(`, `.`, `)`, `123`,  `"hi!"`, `min`, etc.
+series **tokens**, like `(`, `.`, `)`, `123`, `"hi!"`, `min`, etc.
 
 The scanner usually discards whitespace and comments, leaving a clean sequence
 of meaningful tokens.
@@ -24,7 +24,7 @@ nature of the grammar. These trees have a couple of different names—**parse
 tree** or **abstract syntax tree (AST)**—depending on how close to the bare
 syntactic structure of the source language they are.
 
-![](/assets/crafting_interpreters_parsing.png)
+![Parsing](/assets/crafting_interpreters_parsing.png)
 
 ### Static analysis
 
@@ -65,6 +65,7 @@ that isn’t tightly tied to either the source or destination forms (hence
 languages.
 
 There are a few well-established styles of IRs:
+
 - control flow graph #todo
 - static single-assignment #todo
 - continuation-passing style #todo
@@ -216,9 +217,9 @@ Common Language Runtime (CLR), and most JavaScript interpreters do.
 ### 1. Open Source examples
 
 > Pick an open source implementation of a language you like. Download the source
-  code and poke around in it. Try to find the code that implements the scanner
-  and parser. Are they handwritten, or generated using tools like Lex and Yacc?
-  (.l or .y files usually imply the latter.)
+> code and poke around in it. Try to find the code that implements the scanner
+> and parser. Are they handwritten, or generated using tools like Lex and Yacc?
+> (.l or .y files usually imply the latter.)
 
 Hand-written scanners/parsers:
 
@@ -235,8 +236,8 @@ Generated parsers:
 ### 2. Why not JIT?
 
 > Just-in-time compilation tends to be the fastest way to implement dynamically
-  typed languages, but not all of them use it. What reasons are there to not
-  JIT?
+> typed languages, but not all of them use it. What reasons are there to not
+> JIT?
 
 - Complexity of writing a JIT.
 - JIT often needs to profile the code during the runtime, that will add memory
@@ -247,6 +248,6 @@ Generated parsers:
 ### 3. Lisp and C
 
 > Most Lisp implementations that compile to C also contain an interpreter that
-  lets them execute Lisp code on the fly as well. Why?
+> lets them execute Lisp code on the fly as well. Why?
 
 Probably REPL? #todo
