@@ -16,6 +16,19 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+// Ref: https://stackoverflow.com/a/72285005/1754752
+tasks.jar {
+    manifest.attributes["Main-Class"] = "com.craftinginterpreters.lox.MainKt"
+    val dependencies = configurations
+        .runtimeClasspath
+        .get()
+        .map(::zipTree)
+    from(dependencies)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+
 kotlin {
     jvmToolchain(21)
 }
