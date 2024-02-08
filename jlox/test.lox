@@ -1,9 +1,0 @@
-class Animal {
-   fun new(name) {
-      this.name = name;
-   }
-
-   fun speak() {
-       return "Yo";
-   }
-}
