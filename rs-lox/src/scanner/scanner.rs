@@ -1,4 +1,4 @@
-use std::str::Chars;
+use std::{cmp::min, str::Chars};
 
 use phf::phf_map;
 
@@ -89,6 +89,8 @@ impl<'a> Scanner<'a> {
                     while self.peek().unwrap_or('\n') != '\n' {
                         self.advance();
                     }
+                } else if self.match_and_advance('*') {
+                    self.block_comment();
                 } else {
                     self.add_token(Slash);
                 }
@@ -136,9 +138,15 @@ impl<'a> Scanner<'a> {
     }
 
     fn add_token(&mut self, kind: TokenKind) {
-        let lexeme = &self.source[self.start..self.current];
+        let start = min(self.start, self.source.len());
+        let end = min(self.current, self.source.len());
+        let lexeme = &self.source[start..end];
         let token = Token::new(kind, lexeme, self.line);
         self.tokens.push(token);
+    }
+
+    fn add_error(&mut self, err: &'static str) {
+        self.errors.push((self.line, err))
     }
 
     fn advance(&mut self) -> Option<char> {
@@ -174,9 +182,9 @@ impl<'a> Scanner<'a> {
         if self.match_and_advance('"') {
             // We don't want the enclosing '"'
             let len = self.current - self.start - 2;
-            self.add_token(TokenKind::String(chars.as_str()[..len].to_string()))
+            self.add_token(TokenKind::String(chars.as_str()[..len].to_string()));
         } else {
-            self.errors.push((self.line, "Unterminated string"))
+            self.add_error("Unterminated string");
         }
     }
 
@@ -213,6 +221,31 @@ impl<'a> Scanner<'a> {
         let num_str = &self.source[self.start..self.current];
         self.add_token(Number(num_str.parse().unwrap()));
     }
+
+    fn block_comment(&mut self) {
+        loop {
+            match self.advance() {
+                Some('*') => {
+                    if self.peek() == Some('/') {
+                        self.advance();
+                        return;
+                    } else {
+                    }
+                }
+                Some('/') => {
+                    if self.peek() == Some('*') {
+                        self.advance();
+                        self.block_comment();
+                    }
+                }
+                Some(_) => {}
+                None => {
+                    self.add_error("Unterminated block comment");
+                    return;
+                }
+            }
+        }
+    }
 }
 
 #[inline]
@@ -238,7 +271,7 @@ mod test {
 
     #[test]
     fn single_char_tokens() {
-        let src = "(){},.+-;/*//*******";
+        let src = "(){},.+-;/ *// *******";
         let expected = vec![
             LeftParen, RightParen, LeftBrace, RightBrace, Comma, Dot, Plus, Minus, Semi, Slash,
             Star,
@@ -276,6 +309,22 @@ mod test {
     }
 
     #[test]
+    fn string_errors() {
+        let src = "print false;
+            var x = \"abc";
+        let (tokens, errors) = tokenize(src);
+
+        let kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
+        let expected = vec![Print, False, Semi, Var, Identifier("x".into()), Equal, Eof];
+        assert_eq!(kinds, expected);
+
+        assert_eq!(errors.len(), 1);
+        let (line, msg) = errors[0];
+        assert_eq!(line, 2);
+        assert_eq!(msg, "Unterminated string");
+    }
+
+    #[test]
     fn identifier() {
         let src = "name
 age";
@@ -304,6 +353,25 @@ age";
     }
 
     #[test]
+    fn block_comment() {
+        let src = "var x = /*** mutline
+            block comment ** / */ nil";
+        let expected = vec![Var, Identifier("x".into()), Equal, Nil];
+        assert(src, expected);
+
+        // nested block comment
+        let src = "print /*** /**/ */;";
+        assert(src, vec![Print, Semi]);
+
+        let src = "print /*** /* */";
+        let (tokens, errors) = tokenize(src);
+        let token_kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
+        assert_eq!(token_kinds, vec![Print, Eof]);
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].1, "Unterminated block comment");
+    }
+
+    #[test]
     #[rustfmt::skip::macros(vec)]
     fn programs() {
         let src = "var x = \"abc\";
@@ -326,21 +394,5 @@ age";
             Identifier("a".into()), Plus, Identifier("b".into()), Semi, RightBrace,
         ];
         assert(src, expected);
-    }
-
-    #[test]
-    fn errors() {
-        let src = "print false;
-            var x = \"abc";
-        let (tokens, errors) = tokenize(src);
-
-        let kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
-        let expected = vec![Print, False, Semi, Var, Identifier("x".into()), Equal, Eof];
-        assert_eq!(kinds, expected);
-
-        assert_eq!(errors.len(), 1);
-        let (line, msg) = errors[0];
-        assert_eq!(line, 2);
-        assert_eq!(msg, "Unterminated string");
     }
 }
