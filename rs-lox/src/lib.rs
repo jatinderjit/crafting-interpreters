@@ -1,7 +1,14 @@
+mod lox;
+mod scanner;
+
 use std::fs::read_to_string;
 use std::io::{self, BufRead, Write};
 
 use anyhow::Result;
+
+use lox::Lox;
+
+type LoxError = (usize, &'static str);
 
 macro_rules! prompt {
     ($arg:expr) => {{
@@ -11,22 +18,19 @@ macro_rules! prompt {
 }
 
 pub fn run_file(path: &str) -> Result<()> {
+    let mut lox = Lox::new();
     let source = read_to_string(path)?;
-    run(&source)
+    lox.run(&source)
 }
 
 pub fn run_prompt() -> Result<()> {
+    let mut lox = Lox::new();
     let mut lines = io::stdin().lock().lines();
     loop {
         prompt!("> ")?;
         match lines.next() {
-            Some(line) => run(&line?)?,
+            Some(line) => lox.run(&line?)?,
             None => return Ok(()),
         };
     }
-}
-
-fn run(source: &str) -> Result<()> {
-    println!("{source}");
-    Ok(())
 }

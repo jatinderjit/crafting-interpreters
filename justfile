@@ -1,5 +1,10 @@
+_cargo := 'cd rs-lox && cargo'
+
+test:
+    {{ _cargo }} test
+
 run:
-    cd rs-lox && cargo run
+    {{ _cargo }} run
 
 run-kt FILE="": jar
     java -jar ./kt-lox/build/libs/kt-lox-1.0-SNAPSHOT.jar {{ FILE }}
