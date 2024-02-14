@@ -1,5 +1,6 @@
-mod lox;
-mod scanner;
+pub mod ast;
+pub mod lox;
+pub mod scanner;
 
 use std::fs::read_to_string;
 use std::io::{self, BufRead, Write};
