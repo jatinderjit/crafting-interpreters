@@ -1,22 +1,26 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 use crate::scanner::tokenize;
 
 #[derive(Debug)]
-pub(crate) struct Lox {
-    had_error: bool,
+pub struct Lox {
+    pub had_error: bool,
 }
 
 impl Lox {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self { had_error: false }
     }
-    pub(crate) fn run(&mut self, source: &str) -> Result<()> {
+    pub fn run(&mut self, source: &str) -> Result<()> {
         let (tokens, errors) = tokenize(source);
         dbg!(tokens);
+        self.had_error = !errors.is_empty();
         errors
             .into_iter()
             .for_each(|(line, message)| self.error(line, message));
+        if self.had_error {
+            bail!("Lox encountered errors");
+        }
         Ok(())
     }
 

@@ -302,4 +302,45 @@ age";
         let expected = vec![Number(123.), Comma, Number(0.45), Comma, Number(5.), Dot];
         assert(src, expected);
     }
+
+    #[test]
+    #[rustfmt::skip::macros(vec)]
+    fn programs() {
+        let src = "var x = \"abc\";
+            print x;
+            var y = 5.1 * 4;
+            var z = -1 / 4;
+            while(true) {
+              // Some comment
+            }
+            fun add(a, b) { return a + b; }";
+        let expected = vec![
+            Var, Identifier("x".into()), Equal, String("abc".into()), Semi,
+            Print, Identifier("x".into()), Semi,
+            Var, Identifier("y".into()), Equal, Number(5.1), Star, Number(4.), Semi,
+            Var, Identifier("z".into()), Equal, Minus, Number(1.), Slash, Number(4.), Semi,
+            While, LeftParen, True, RightParen, LeftBrace, RightBrace,
+
+            Fun, Identifier("add".into()), LeftParen, Identifier("a".into()), Comma,
+            Identifier("b".into()), RightParen, LeftBrace, Return,
+            Identifier("a".into()), Plus, Identifier("b".into()), Semi, RightBrace,
+        ];
+        assert(src, expected);
+    }
+
+    #[test]
+    fn errors() {
+        let src = "print false;
+            var x = \"abc";
+        let (tokens, errors) = tokenize(src);
+
+        let kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
+        let expected = vec![Print, False, Semi, Var, Identifier("x".into()), Equal, Eof];
+        assert_eq!(kinds, expected);
+
+        assert_eq!(errors.len(), 1);
+        let (line, msg) = errors[0];
+        assert_eq!(line, 2);
+        assert_eq!(msg, "Unterminated string");
+    }
 }

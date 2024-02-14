@@ -12,7 +12,10 @@ fn main() -> Result<()> {
     }
     if args.len() == 2 {
         println!("executing file: {}", &args[1]);
-        run_file(&args[1])
+        match run_file(&args[1]) {
+            Ok(()) => Ok(()),
+            Err(_) => exit(65),
+        }
     } else {
         println!("running prompt");
         run_prompt()

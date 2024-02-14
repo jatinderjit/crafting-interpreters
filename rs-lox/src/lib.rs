@@ -28,9 +28,11 @@ pub fn run_prompt() -> Result<()> {
     let mut lines = io::stdin().lock().lines();
     loop {
         prompt!("> ")?;
-        match lines.next() {
-            Some(line) => lox.run(&line?)?,
+        let line = match lines.next() {
+            Some(line) => line,
             None => return Ok(()),
         };
+        let _ = lox.run(&line?);
+        lox.had_error = false;
     }
 }

@@ -6,6 +6,6 @@ mod scanner;
 mod token;
 
 pub fn tokenize<'a>(source: &'a str) -> (Vec<Token<'a>>, Vec<LoxError>) {
-    let mut scanner = Scanner::new(source);
+    let scanner = Scanner::new(source);
     scanner.scan_tokens()
 }
