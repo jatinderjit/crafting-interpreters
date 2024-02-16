@@ -21,17 +21,19 @@ object Lox {
             if (line == "exit") return
             run(line)
 
-            hadError = true
+            hadError = false
         }
     }
 
     private fun run(source: String) {
         val scanner = Scanner(source)
-        val tokens: Array<Token> = scanner.scanTokens()
+        val tokens = scanner.scanTokens()
+        val parser = Parser(tokens)
+        val expr = parser.parse()
 
-        for (token in tokens) {
-            println(token)
-        }
+        if (hadError) return
+
+        println(AstPrinter.print(expr!!))
     }
 
     fun error(line: Int, message: String) {

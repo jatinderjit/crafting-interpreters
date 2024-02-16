@@ -28,8 +28,12 @@ class Parser(val tokens: List<Token>) {
 
     private var current = 0
 
-    fun parse(): Expr {
-        return expression()
+    fun parse(): Expr? {
+        return try {
+            expression()
+        } catch (_: ParseError) {
+            null
+        }
     }
 
     private fun expression(): Expr {
@@ -141,5 +145,25 @@ class Parser(val tokens: List<Token>) {
     private fun check(type: TokenType): Boolean {
         if (isAtEnd()) return false
         return peek().type == type
+    }
+
+    private fun synchronize() {
+        advance()
+
+        while (!isAtEnd()) {
+            when (peek().type) {
+                CLASS -> return
+                FUN -> return
+                FOR -> return
+                IF -> return
+                PRINT -> return
+                RETURN -> return
+                VAR -> return
+                WHILE -> return
+                else -> {}
+            }
+        }
+
+        advance()
     }
 }

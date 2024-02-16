@@ -27,13 +27,13 @@ class Scanner(private val source: String) {
     private var line: Int = 1
     private val tokens = mutableListOf<Token>()
 
-    fun scanTokens(): Array<Token> {
+    fun scanTokens(): List<Token> {
         while (!isAtEnd()) {
             start = current
             scanToken()
         }
         tokens.add(Token(EOF, "", null, line))
-        return tokens.toTypedArray()
+        return tokens
     }
 
     private fun scanToken() {
