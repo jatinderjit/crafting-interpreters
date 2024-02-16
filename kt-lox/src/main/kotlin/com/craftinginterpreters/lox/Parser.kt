@@ -7,7 +7,9 @@ class ParseError : RuntimeException()
 /**
  * Grammar:
  *
- * xpression     → equality ;
+ * expression     → comma ;
+ *
+ * comma          → equality ( "," equality)* ;
  *
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *
@@ -37,7 +39,17 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun expression(): Expr {
-        return equality()
+        return comma()
+    }
+
+    private fun comma(): Expr {
+        var expr = equality()
+        while (match(COMMA)) {
+            val operator = previous()
+            val right = equality()
+            expr = Expr.Binary(expr, operator, right)
+        }
+        return expr
     }
 
     private fun equality(): Expr {
