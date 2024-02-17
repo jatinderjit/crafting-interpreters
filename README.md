@@ -10,3 +10,5 @@
 4. Scanning
 5. [Representing Code](./notes/05-representing-code.md)
 6. [Parsing Expressions](./notes/06-parsing-expressions.md)
+7. Evaluating Expressions
+8. Statements and State

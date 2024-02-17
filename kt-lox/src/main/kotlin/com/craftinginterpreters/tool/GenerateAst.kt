@@ -1,12 +1,9 @@
 package com.craftinginterpreters.tool
 
 import java.io.File
-import java.io.PrintWriter
 import kotlin.system.exitProcess
 
-private const val baseName = "Expr"
-
-private val exprTypes = arrayOf(
+private val exprTypes = listOf(
     "Binary    : Expr left, Token operator, Expr right",
     "Ternary   : Expr condition, Expr if_expr, Expr else_expr",
     "Grouping  : Expr expression",
@@ -14,7 +11,12 @@ private val exprTypes = arrayOf(
     "Unary     : Token operator, Expr right",
 )
 
-data class ExprType(val name: String, val params: List<Parameter>)
+private val stmtTypes = listOf(
+    "Expression  : Expr expression",
+    "Print       : Expr expression",
+)
+
+data class TypeDefinition(val name: String, val params: List<Parameter>)
 
 data class Parameter(val name: String, val type: String) {
     override fun toString(): String {
@@ -27,22 +29,22 @@ fun main(args: Array<String>) {
         println("Usage: generate_ast <output directory>")
         exitProcess(64)
     }
-    GenerateAst(args[0]).generate()
+    GenerateAst(args[0], "Expr", exprTypes).generate()
+    GenerateAst(args[0], "Stmt", stmtTypes).generate()
 }
 
-class GenerateAst(outputDir: String) {
+class GenerateAst(outputDir: String, private val baseName: String, private val definition: List<String>) {
     private val path = "$outputDir/$baseName.kt"
-    private var w: PrintWriter = File(path).printWriter()
-    private lateinit var types: Array<ExprType>
+    private val w = File(path).printWriter()
+    private val types = parseTypes()
 
     fun generate() {
-        types = parseTypes()
         defineAst()
         w.close()
     }
 
-    private fun parseTypes(): Array<ExprType> {
-        return exprTypes.map<String, ExprType> {
+    private fun parseTypes(): Array<TypeDefinition> {
+        return definition.map {
             val className = it.split(":")[0].trim()
             val fields = it.split(":")[1].trim()
             val params = fields.split(",").map {
@@ -51,7 +53,7 @@ class GenerateAst(outputDir: String) {
                 val type = field.split(' ')[0]
                 Parameter(name, type)
             }
-            ExprType(className, params)
+            TypeDefinition(className, params)
         }.toTypedArray()
     }
 
@@ -67,14 +69,14 @@ class GenerateAst(outputDir: String) {
         w.println("}")
     }
 
-    private fun defineType(exprType: ExprType) {
-        val params = exprType.params.joinToString(", ") {
+    private fun defineType(typeDefinition: TypeDefinition) {
+        val params = typeDefinition.params.joinToString(", ") {
             "val $it"
         }
         w.println()
-        w.println("    data class ${exprType.name}($params): $baseName() {")
+        w.println("    data class ${typeDefinition.name}($params): $baseName() {")
         w.println("        override fun <R> accept(visitor: Visitor<R>): R {")
-        w.println("            return visitor.visit${exprType.name}$baseName(this)")
+        w.println("            return visitor.visit${typeDefinition.name}$baseName(this)")
         w.println("        }")
         w.println("    }")
     }

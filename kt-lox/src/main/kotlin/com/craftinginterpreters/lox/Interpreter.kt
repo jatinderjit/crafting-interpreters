@@ -2,17 +2,29 @@ package com.craftinginterpreters.lox
 
 import com.craftinginterpreters.lox.TokenType.*
 
-object Interpreter : Expr.Visitor<Any?> {
-    fun interpret(expression: Expr) {
+object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    fun interpret(statements: List<Stmt>) {
         try {
-            val value = evaluate(expression)
-            println(stringify(value))
+            statements.forEach(::execute)
         } catch (error: RuntimeError) {
             Lox.runtimeError(error)
         }
     }
 
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
+    }
+
     private fun evaluate(expr: Expr): Any? = expr.accept(this)
+
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitPrintStmt(stmt: Stmt.Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
+    }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any {
         val left = evaluate(expr.left)
