@@ -4,6 +4,7 @@ import java.io.File
 import kotlin.system.exitProcess
 
 private val exprTypes = listOf(
+    "Assign    : Token name, Expr value",
     "Binary    : Expr left, Token operator, Expr right",
     "Ternary   : Expr condition, Expr if_expr, Expr else_expr",
     "Grouping  : Expr expression",

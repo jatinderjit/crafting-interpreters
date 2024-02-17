@@ -19,34 +19,41 @@ class ParserTest {
     private val bangEqual = Token(BANG_EQUAL, "!=", null, 1)
     private val comma = Token(COMMA, ",", null, 1)
 
-    private fun parse(source: String): Expr? {
+    private fun parse(source: String): List<Stmt> {
         val tokens = Scanner(source).scanTokens()
         return Parser(tokens).parse()
     }
 
     private fun assertExpr(source: String, expected: Expr?) {
-        val actual = parse(source)
-        assertEquals(actual, expected)
+        val statements = parse(source)
+        if (expected == null) {
+            assert(statements.isEmpty())
+        } else {
+            assert(statements.isNotEmpty())
+            val stmt = statements[0]
+            assert(stmt is Stmt.Expression)
+            assertEquals((stmt as Stmt.Expression).expression, expected)
+        }
     }
 
     @Test
     fun primary() {
-        assertExpr("123", Literal(123.0))
-        assertExpr("\"123\"", Literal("123"))
-        assertExpr("true", Literal(true))
-        assertExpr("false", Literal(false))
-        assertExpr("nil", Literal(null))
+        assertExpr("123;", Literal(123.0))
+        assertExpr("\"123\";", Literal("123"))
+        assertExpr("true;", Literal(true))
+        assertExpr("false;", Literal(false))
+        assertExpr("nil;", Literal(null))
     }
 
     @Test
     fun unary() {
-        assertExpr("-123", Unary(minus, Literal(123.0)))
-        assertExpr("!!false", Unary(bang, Unary(bang, Literal(false))))
+        assertExpr("-123;", Unary(minus, Literal(123.0)))
+        assertExpr("!!false;", Unary(bang, Unary(bang, Literal(false))))
     }
 
     @Test
     fun factor() {
-        val source = "-4 * 5 / 10"
+        val source = "-4 * 5 / 10;"
         val expected = Binary(
             Binary(Unary(minus, Literal(4.0)), star, Literal(5.0)),
             slash,
@@ -68,7 +75,7 @@ class ParserTest {
                  / \
                 4   3
          */
-        val source = "5 + 4 * 3 - 2 - 1"
+        val source = "5 + 4 * 3 - 2 - 1;"
         val expected = Binary(
             Binary(
                 Binary(
@@ -87,15 +94,15 @@ class ParserTest {
 
     @Test
     fun comparison() {
-        assertExpr("4 < 5", Binary(Literal(4.0), less, Literal(5.0)))
-        assertExpr("4 <= 5", Binary(Literal(4.0), lessEqual, Literal(5.0)))
-        assertExpr("5 > 4", Binary(Literal(5.0), greater, Literal(4.0)))
-        assertExpr("5 >= 4", Binary(Literal(5.0), greaterEqual, Literal(4.0)))
+        assertExpr("4 < 5;", Binary(Literal(4.0), less, Literal(5.0)))
+        assertExpr("4 <= 5;", Binary(Literal(4.0), lessEqual, Literal(5.0)))
+        assertExpr("5 > 4;", Binary(Literal(5.0), greater, Literal(4.0)))
+        assertExpr("5 >= 4;", Binary(Literal(5.0), greaterEqual, Literal(4.0)))
     }
 
     @Test
     fun equality() {
-        val source = "4 >= 2.1 == true != false"
+        val source = "4 >= 2.1 == true != false;"
         val expected = Binary(
             Binary(
                 Binary(Literal(4.0), greaterEqual, Literal(2.1)),
@@ -110,7 +117,7 @@ class ParserTest {
 
     @Test
     fun comma() {
-        val source = "4+2,1<5"
+        val source = "4+2,1<5;"
         val expected = Binary(
             Binary(Literal(4.0), plus, Literal(2.0)),
             comma,
@@ -122,7 +129,7 @@ class ParserTest {
     @Test
     fun ternary() {
         // ((1 + 2) ? ((3 - 2) ? (4 * 5) : nil) : (6 ? 7 : 8)), 9
-        val source = "1 + 2 ? 3 - 2 ? 4 * 5 : nil : 6 ? 7 : 8, 9 ? 10 : 11"
+        val source = "1 + 2 ? 3 - 2 ? 4 * 5 : nil : 6 ? 7 : 8, 9 ? 10 : 11;"
         val expected = Binary(
             Ternary(
                 Binary(Literal(1.0), plus, Literal(2.0)),
@@ -141,7 +148,7 @@ class ParserTest {
 
     @Test
     fun grouping() {
-        val source = "4 * (2 + 3) / (2 - 1)"
+        val source = "4 * (2 + 3) / (2 - 1);"
         val expected = Binary(
             Binary(
                 Literal(4.0),

@@ -2,6 +2,7 @@ package com.craftinginterpreters.lox
 
 abstract class Expr {
     interface Visitor<R> {
+        fun visitAssignExpr(expr: Assign): R
         fun visitBinaryExpr(expr: Binary): R
         fun visitTernaryExpr(expr: Ternary): R
         fun visitGroupingExpr(expr: Grouping): R
@@ -11,6 +12,12 @@ abstract class Expr {
     }
 
     abstract fun <R> accept(visitor: Visitor<R>): R
+
+    data class Assign(val name: Token, val value: Expr): Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitAssignExpr(this)
+        }
+    }
 
     data class Binary(val left: Expr, val operator: Token, val right: Expr): Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {

@@ -15,6 +15,9 @@ object AstPrinter : Expr.Visitor<String> {
         return builder.toString()
     }
 
+    override fun visitAssignExpr(expr: Expr.Assign): String =
+        "(= ${expr.name} ${expr.value.accept(this)})"
+
     override fun visitBinaryExpr(expr: Expr.Binary): String =
         parenthesize(expr.operator.lexeme, expr.left, expr.right)
 
@@ -34,5 +37,5 @@ object AstPrinter : Expr.Visitor<String> {
         parenthesize(expr.operator.lexeme, expr.right)
 
     override fun visitVariableExpr(expr: Expr.Variable): String =
-        "(= ${expr.name})"
+        "(var ${expr.name})"
 }

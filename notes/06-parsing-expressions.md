@@ -123,6 +123,8 @@ The body of the rule translates to code roughly like:
 | `*` or `+`       | `while` or `for` loop             |
 | `?`              | `if` statement                    |
 
+Right associative: use recursion.
+
 
 ## Syntax Errors
 

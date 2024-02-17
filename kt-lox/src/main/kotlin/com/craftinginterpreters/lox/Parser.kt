@@ -23,7 +23,10 @@ class ParseError : RuntimeException()
  *
  * expression     → comma ;
  *
- * comma          → ternary ( "," ternary)* ;
+ * comma          → assignment ( "," assignment)* ;
+ *
+ * assignment     → IDENTIFIER "=" assignment
+ *                | ternary ;
  *
  * ternary        → equality "?" ternary ":" ternary
  *                | equality ;
@@ -99,11 +102,27 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun comma(): Expr {
-        var expr = ternary()
+        var expr = assignment()
         while (match(COMMA)) {
             val operator = previous()
-            val right = ternary()
+            val right = assignment()
             expr = Expr.Binary(expr, operator, right)
+        }
+        return expr
+    }
+
+    private fun assignment(): Expr {
+        val expr = ternary()
+        if (match(EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+            if (expr is Expr.Variable) {
+                return Expr.Assign(expr.name, value)
+            }
+            // Report an error, without throwing it.
+            // Parser isn't in a confused state. We don't need to go into panic
+            // mode and synchronize.
+            error(equals, "Invalid assignment target.")
         }
         return expr
     }
