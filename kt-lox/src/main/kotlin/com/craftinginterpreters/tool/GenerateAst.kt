@@ -9,11 +9,13 @@ private val exprTypes = listOf(
     "Grouping  : Expr expression",
     "Literal   : Any? value",
     "Unary     : Token operator, Expr right",
+    "Variable  : Token name",
 )
 
 private val stmtTypes = listOf(
     "Expression  : Expr expression",
     "Print       : Expr expression",
+    "Var         : Token name, Expr? initializer",
 )
 
 data class TypeDefinition(val name: String, val params: List<Parameter>)

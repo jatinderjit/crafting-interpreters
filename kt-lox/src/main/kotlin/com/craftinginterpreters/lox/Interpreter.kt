@@ -3,6 +3,8 @@ package com.craftinginterpreters.lox
 import com.craftinginterpreters.lox.TokenType.*
 
 object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    private val environment = Environment()
+
     fun interpret(statements: List<Stmt>) {
         try {
             statements.forEach(::execute)
@@ -24,6 +26,14 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     override fun visitPrintStmt(stmt: Stmt.Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        var value: Any? = null
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer)
+        }
+        environment.define(stmt.name.lexeme, value)
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any {
@@ -91,6 +101,10 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             BANG -> !isTruthy(right)
             else -> throw Exception("Unreachable")
         }
+    }
+
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return environment.get(expr.name)
     }
 
     private fun isTruthy(expr: Any?): Boolean {

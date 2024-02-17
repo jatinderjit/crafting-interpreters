@@ -32,4 +32,7 @@ object AstPrinter : Expr.Visitor<String> {
 
     override fun visitUnaryExpr(expr: Expr.Unary): String =
         parenthesize(expr.operator.lexeme, expr.right)
+
+    override fun visitVariableExpr(expr: Expr.Variable): String =
+        "(= ${expr.name})"
 }

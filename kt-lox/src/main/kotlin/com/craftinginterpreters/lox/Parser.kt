@@ -9,8 +9,13 @@ class ParseError : RuntimeException()
  *
  * program        → statement* EOF ;
  *
+ * declaration    → varDecl
+ *                | statement ;
+ *
  * statement      → exprStmt
  *                | printStmt ;
+ *
+ * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  *
  * exprStmt       → expression ";" ;
  *
@@ -34,8 +39,10 @@ class ParseError : RuntimeException()
  * unary          → ( "!" | "-" ) unary
  *                | primary ;
  *
- * primary        → NUMBER | STRING | "true" | "false" | "nil"
- *                | "(" expression ")" ;
+ * primary        → "true" | "false" | "nil"
+ *                | NUMBER | STRING
+ *                | "(" expression ")"
+ *                | IDENTIFIER ;
  */
 class Parser(private val tokens: List<Token>) {
 
@@ -45,9 +52,29 @@ class Parser(private val tokens: List<Token>) {
     fun parse(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            try {
+                statements.add(declaration())
+            } catch (error: ParseError) {
+                synchronize()
+            }
         }
         return statements
+    }
+
+    private fun declaration(): Stmt {
+        if (match(VAR)) return varDeclaration()
+        return statement()
+    }
+
+    private fun varDeclaration(): Stmt {
+        val name = consume(IDENTIFIER, "Expect variable name")
+
+        var initializer: Expr? = null
+        if (match(EQUAL)) {
+            initializer = expression()
+        }
+        consume(SEMICOLON, "Expect ';' after variable declaration")
+        return Stmt.Var(name, initializer)
     }
 
     private fun statement(): Stmt {
@@ -145,6 +172,7 @@ class Parser(private val tokens: List<Token>) {
         if (match(FALSE)) return Expr.Literal(false)
         if (match(TRUE)) return Expr.Literal(true)
         if (match(NIL)) return Expr.Literal(null)
+        if (match(IDENTIFIER)) return Expr.Variable(previous())
 
         if (match(NUMBER, STRING)) {
             return Expr.Literal(previous().literal)
