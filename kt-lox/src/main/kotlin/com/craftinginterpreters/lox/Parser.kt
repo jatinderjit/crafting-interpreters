@@ -9,7 +9,10 @@ class ParseError : RuntimeException()
  *
  * expression     → comma ;
  *
- * comma          → equality ( "," equality)* ;
+ * comma          → ternary ( "," ternary)* ;
+ *
+ * ternary        → equality "?" ternary ":" ternary
+ *                | equality ;
  *
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *
@@ -25,7 +28,7 @@ class ParseError : RuntimeException()
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")" ;
  */
-class Parser(val tokens: List<Token>) {
+class Parser(private val tokens: List<Token>) {
 
 
     private var current = 0
@@ -43,11 +46,22 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun comma(): Expr {
-        var expr = equality()
+        var expr = ternary()
         while (match(COMMA)) {
             val operator = previous()
-            val right = equality()
+            val right = ternary()
             expr = Expr.Binary(expr, operator, right)
+        }
+        return expr
+    }
+
+    private fun ternary(): Expr {
+        var expr = equality()
+        if (match(QUESTION_MARK)) {
+            val ifExpr = ternary()
+            consume(COLON, "Expect else (\":\") condition")
+            val elseExpr = ternary()
+            expr = Expr.Ternary(expr, ifExpr, elseExpr)
         }
         return expr
     }

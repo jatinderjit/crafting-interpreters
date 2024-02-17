@@ -1,4 +1,4 @@
-package com.craftinginterpreters.lox.tool
+package com.craftinginterpreters.tool
 
 import java.io.File
 import java.io.PrintWriter
@@ -8,12 +8,13 @@ private const val baseName = "Expr"
 
 private val exprTypes = arrayOf(
     "Binary    : Expr left, Token operator, Expr right",
+    "Ternary   : Expr condition, Expr if_expr, Expr else_expr",
     "Grouping  : Expr expression",
     "Literal   : Any? value",
     "Unary     : Token operator, Expr right",
 )
 
-data class ExprType(val name: String, val params: Array<Parameter>)
+data class ExprType(val name: String, val params: List<Parameter>)
 
 data class Parameter(val name: String, val type: String) {
     override fun toString(): String {
@@ -49,7 +50,7 @@ class GenerateAst(outputDir: String) {
                 val name = field.split(' ')[1]
                 val type = field.split(' ')[0]
                 Parameter(name, type)
-            }.toTypedArray()
+            }
             ExprType(className, params)
         }.toTypedArray()
     }

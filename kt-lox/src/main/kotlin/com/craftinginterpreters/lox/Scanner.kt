@@ -56,6 +56,9 @@ class Scanner(private val source: String) {
             }
 
             '*' -> addToken(STAR)
+            '?' -> addToken(QUESTION_MARK)
+            ':' -> addToken(COLON)
+
             '!' -> addToken(if (match('=')) BANG_EQUAL else BANG)
             '=' -> addToken(if (match('=')) EQUAL_EQUAL else EQUAL)
             '>' -> addToken(if (match('=')) GREATER_EQUAL else GREATER)

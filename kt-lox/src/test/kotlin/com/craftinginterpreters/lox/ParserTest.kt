@@ -17,6 +17,7 @@ class ParserTest {
     private val greaterEqual = Token(GREATER_EQUAL, ">=", null, 1)
     private val equalEqual = Token(EQUAL_EQUAL, "==", null, 1)
     private val bangEqual = Token(BANG_EQUAL, "!=", null, 1)
+    private val comma = Token(COMMA, ",", null, 1)
 
     private fun parse(source: String): Expr? {
         val tokens = Scanner(source).scanTokens()
@@ -103,6 +104,37 @@ class ParserTest {
             ),
             bangEqual,
             Literal(false)
+        )
+        assertExpr(source, expected)
+    }
+
+    @Test
+    fun comma() {
+        val source = "4+2,1<5"
+        val expected = Binary(
+            Binary(Literal(4.0), plus, Literal(2.0)),
+            comma,
+            Binary(Literal(1.0), less, Literal(5.0))
+        )
+        assertExpr(source, expected)
+    }
+
+    @Test
+    fun ternary() {
+        // ((1 + 2) ? ((3 - 2) ? (4 * 5) : nil) : (6 ? 7 : 8)), 9
+        val source = "1 + 2 ? 3 - 2 ? 4 * 5 : nil : 6 ? 7 : 8, 9 ? 10 : 11"
+        val expected = Binary(
+            Ternary(
+                Binary(Literal(1.0), plus, Literal(2.0)),
+                Ternary(
+                    Binary(Literal(3.0), minus, Literal(2.0)),
+                    Binary(Literal(4.0), star, Literal(5.0)),
+                    Literal(null),
+                ),
+                Ternary(Literal(6.0), Literal(7.0), Literal(8.0))
+            ),
+            comma,
+            Ternary(Literal(9.0), Literal(10.0), Literal(11.0))
         )
         assertExpr(source, expected)
     }

@@ -6,17 +6,20 @@ object AstPrinter : Expr.Visitor<String> {
 
     fun parenthesize(name: String, vararg exprs: Expr): String {
         val builder = StringBuilder()
-        builder.append("(").append(name)
+        builder.append('(').append(name)
         exprs.forEach {
-            builder.append(" ")
+            builder.append(' ')
             builder.append(it.accept(this))
         }
-        builder.append(")")
+        builder.append(')')
         return builder.toString()
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): String =
         parenthesize(expr.operator.lexeme, expr.left, expr.right)
+
+    override fun visitTernaryExpr(expr: Expr.Ternary): String =
+        parenthesize("?:", expr.condition, expr.if_expr, expr.else_expr)
 
     override fun visitGroupingExpr(expr: Expr.Grouping): String =
         parenthesize("group", expr.expression)

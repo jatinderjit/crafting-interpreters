@@ -172,6 +172,12 @@ The way a parser responds to an error and keeps going is called **error recovery
 - The traditional place in the grammar to synchronize is between statements. Discard
   tokens until we're right at the beginning of the next statement.
 
+### Error Productions
+
+- Another way to handle _common_ syntax errors is with error productions.
+- Augment the grammar with a rule that _successfully_ matches the _erroneous_ syntax.
+  The parser safely parses it but reports it as an error.
+
 ## Challenges
 
 ### Comma operator
@@ -182,6 +188,26 @@ The way a parser responds to an error and keeps going is called **error recovery
 > evaluates the left operand and discards the result. Then it evaluates and returns the
 > right operand.
 
-As per the [C Operator
-Precedence](https://en.cppreference.com/w/c/language/operator_precedence), `,` has the
-lowest precedence, and is left-associative.
+As per the [C Operator Precedence][c-operator-precedence], `,` has the lowest
+precedence, and is left-associative.
+
+### Ternary operator
+
+> Add support for the C-style conditional or “ternary” operator `?:`. What precedence
+> level is allowed between the `?` and `:`? Is the whole operator left-associative or
+> right-associative?
+
+The precedence of the ternary operator will be higher than comma and assignment
+operators, and lower than everything else (as per the [C Operator
+Precedence][c-operator-precedence])
+
+It will have right associativity.
+
+Grammar rule:
+
+```bnf
+ternary        → equality "?" ternary ":" ternary
+               | equality ;
+```
+
+[c-operator-precedence]: https://en.cppreference.com/w/c/language/operator_precedence
