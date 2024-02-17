@@ -17,7 +17,7 @@ impl Lox {
         self.had_error = !errors.is_empty();
         errors
             .into_iter()
-            .for_each(|(line, message)| self.error(line, message));
+            .for_each(|(line, message)| self.error(line, &message));
         if self.had_error {
             bail!("Lox encountered errors");
         }

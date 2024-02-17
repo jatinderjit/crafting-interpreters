@@ -133,7 +133,7 @@ impl<'a> Scanner<'a> {
             c if c.is_ascii_alphabetic() => self.identifier(),
             c if c.is_ascii_digit() => self.number(),
 
-            _ => todo!(),
+            c => self.add_error(format!("Unexpected character: {c}")),
         };
     }
 
@@ -145,8 +145,8 @@ impl<'a> Scanner<'a> {
         self.tokens.push(token);
     }
 
-    fn add_error(&mut self, err: &'static str) {
-        self.errors.push((self.line, err))
+    fn add_error<T: ToString>(&mut self, err: T) {
+        self.errors.push((self.line, err.to_string()))
     }
 
     fn advance(&mut self) -> Option<char> {

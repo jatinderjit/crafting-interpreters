@@ -9,7 +9,7 @@ use anyhow::Result;
 
 use lox::Lox;
 
-type LoxError = (usize, &'static str);
+type LoxError = (usize, String);
 
 macro_rules! prompt {
     ($arg:expr) => {{
