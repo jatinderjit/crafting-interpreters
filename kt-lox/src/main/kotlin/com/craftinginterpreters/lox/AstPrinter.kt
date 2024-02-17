@@ -4,7 +4,7 @@ object AstPrinter : Expr.Visitor<String> {
     fun print(expr: Expr): String =
         expr.accept(this)
 
-    fun parenthesize(name: String, vararg exprs: Expr): String {
+    private fun parenthesize(name: String, vararg exprs: Expr): String {
         val builder = StringBuilder()
         builder.append('(').append(name)
         exprs.forEach {

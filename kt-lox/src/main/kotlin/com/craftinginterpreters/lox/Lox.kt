@@ -5,12 +5,14 @@ import kotlin.system.exitProcess
 
 object Lox {
     private var hadError: Boolean = false
+    private var hadRuntimeError: Boolean = false
 
     fun runFile(path: String) {
         val contents = File(path).readText()
         run(contents)
 
         if (hadError) exitProcess(65)
+        if (hadRuntimeError) exitProcess(70)
     }
 
     fun runPrompt() {
@@ -22,6 +24,7 @@ object Lox {
             run(line)
 
             hadError = false
+            hadRuntimeError = false
         }
     }
 
@@ -33,7 +36,7 @@ object Lox {
 
         if (hadError) return
 
-        println(AstPrinter.print(expr!!))
+        Interpreter.interpret(expr!!)
     }
 
     fun error(line: Int, message: String) {
@@ -51,5 +54,11 @@ object Lox {
     private fun report(line: Int, where: String, message: String) {
         System.err.println("[line $line] Error $where: $message")
         hadError = true
+    }
+
+    fun runtimeError(error: RuntimeError) {
+        println(error.message)
+        println("[line ${error.token.line}]")
+        hadRuntimeError = true
     }
 }
