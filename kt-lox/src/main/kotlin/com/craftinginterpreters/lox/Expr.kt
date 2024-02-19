@@ -7,6 +7,7 @@ abstract class Expr {
         fun visitTernaryExpr(expr: Ternary): R
         fun visitGroupingExpr(expr: Grouping): R
         fun visitLiteralExpr(expr: Literal): R
+        fun visitLogicalExpr(expr: Logical): R
         fun visitUnaryExpr(expr: Unary): R
         fun visitVariableExpr(expr: Variable): R
     }
@@ -40,6 +41,12 @@ abstract class Expr {
     data class Literal(val value: Any?): Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitLiteralExpr(this)
+        }
+    }
+
+    data class Logical(val left: Expr, val operator: Token, val right: Expr): Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitLogicalExpr(this)
         }
     }
 

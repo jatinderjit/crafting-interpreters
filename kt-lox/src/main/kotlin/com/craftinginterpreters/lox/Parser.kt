@@ -38,6 +38,10 @@ class ParseError : RuntimeException()
  * ternary        → equality "?" ternary ":" ternary
  *                | equality ;
  *
+ * logical_or     → logic_and ( "or" logic_and )* ;
+ *
+ * logical_and    → equality ( "and" equality )* ;
+ *
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  *
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -156,12 +160,32 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun ternary(): Expr {
-        var expr = equality()
+        var expr = or()
         if (match(QUESTION_MARK)) {
             val ifExpr = ternary()
             consume(COLON, "Expect else (\":\") condition")
             val elseExpr = ternary()
             expr = Expr.Ternary(expr, ifExpr, elseExpr)
+        }
+        return expr
+    }
+
+    private fun or(): Expr {
+        var expr = and()
+        while (match(OR)) {
+            val token = previous()
+            val right = and()
+            expr = Expr.Logical(expr, token, right)
+        }
+        return expr
+    }
+
+    private fun and(): Expr {
+        var expr = equality()
+        while (match(AND)) {
+            val token = previous()
+            val right = equality()
+            expr = Expr.Logical(expr, token, right)
         }
         return expr
     }

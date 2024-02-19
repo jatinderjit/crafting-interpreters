@@ -109,6 +109,15 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
+        return when (expr.operator.type) {
+            AND -> if (isTruthy(left)) evaluate(expr.right) else left
+            OR -> if (isTruthy(left)) left else evaluate(expr.right)
+            else -> throw Exception("Unreachable")
+        }
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression)
     }

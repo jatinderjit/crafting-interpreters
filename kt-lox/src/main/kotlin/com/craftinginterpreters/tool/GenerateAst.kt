@@ -9,6 +9,7 @@ private val exprTypes = listOf(
     "Ternary   : Expr condition, Expr if_expr, Expr else_expr",
     "Grouping  : Expr expression",
     "Literal   : Any? value",
+    "Logical   : Expr left, Token operator, Expr right",
     "Unary     : Token operator, Expr right",
     "Variable  : Token name",
 )
