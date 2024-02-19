@@ -13,8 +13,12 @@ class ParseError : RuntimeException()
  *                | statement ;
  *
  * statement      → exprStmt
+ *                | ifStmt
  *                | printStmt
  *                | block ;
+ *
+ * ifStmt         → "if" "(" expression ")" statement
+ *                  ( "else" statement )? ;
  *
  * block          → "{" declaration* "}"
  *
@@ -84,6 +88,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
         return expressionStatement()
@@ -102,6 +107,16 @@ class Parser(private val tokens: List<Token>) {
         val expr = expression()
         consume(SEMICOLON, "Expect ';' after expression")
         return Stmt.Expression(expr)
+    }
+
+    private fun ifStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after if")
+        val condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after if condition")
+
+        val thenBranch = statement()
+        val elseBranch = if (match(ELSE)) statement() else null
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement(): Stmt {
