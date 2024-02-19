@@ -20,6 +20,7 @@ class Environment(private val enclosing: Environment? = null) {
     fun assign(name: Token, value: Any?) {
         if (values.containsKey(name.lexeme)) {
             values[name.lexeme] = value
+            return
         }
         if (enclosing != null) {
             return enclosing.assign(name, value)

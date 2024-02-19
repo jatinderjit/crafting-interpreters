@@ -30,7 +30,7 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     private fun evaluate(expr: Expr): Any? = expr.accept(this)
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
-        TODO("Not yet implemented")
+        evaluate(stmt.expression)
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block) {
@@ -56,6 +56,12 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             value = evaluate(stmt.initializer)
         }
         environment.define(stmt.name.lexeme, value)
+    }
+
+    override fun visitWhileStmt(stmt: Stmt.While) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body)
+        }
     }
 
     override fun visitAssignExpr(expr: Expr.Assign): Any? {

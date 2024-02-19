@@ -20,6 +20,7 @@ private val stmtTypes = listOf(
     "If          : Expr condition, Stmt thenBranch, Stmt? elseBranch",
     "Print       : Expr expression",
     "Var         : Token name, Expr? initializer",
+    "While       : Expr condition, Stmt body",
 )
 
 data class TypeDefinition(val name: String, val params: List<Parameter>)
