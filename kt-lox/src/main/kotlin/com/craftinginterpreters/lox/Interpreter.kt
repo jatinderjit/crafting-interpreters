@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox
 import com.craftinginterpreters.lox.TokenType.*
 
 object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    private val environment = Environment()
+    private var environment = Environment()
 
     fun interpret(statements: List<Stmt>) {
         try {
@@ -17,10 +17,24 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         stmt.accept(this)
     }
 
+    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+        val prevEnvironment = this.environment
+        this.environment = environment
+        try {
+            statements.forEach(::execute)
+        } finally {
+            this.environment = prevEnvironment
+        }
+    }
+
     private fun evaluate(expr: Expr): Any? = expr.accept(this)
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         TODO("Not yet implemented")
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block) {
+        executeBlock(stmt.statements, Environment(environment))
     }
 
     override fun visitPrintStmt(stmt: Stmt.Print) {

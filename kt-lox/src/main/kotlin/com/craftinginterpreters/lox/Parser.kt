@@ -13,7 +13,10 @@ class ParseError : RuntimeException()
  *                | statement ;
  *
  * statement      → exprStmt
- *                | printStmt ;
+ *                | printStmt
+ *                | block ;
+ *
+ * block          → "{" declaration* "}"
  *
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  *
@@ -82,7 +85,17 @@ class Parser(private val tokens: List<Token>) {
 
     private fun statement(): Stmt {
         if (match(PRINT)) return printStatement()
+        if (match(LEFT_BRACE)) return Stmt.Block(block())
         return expressionStatement()
+    }
+
+    private fun block(): List<Stmt> {
+        val statements = mutableListOf<Stmt>()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration())
+        }
+        consume(RIGHT_BRACE, "Expect '}' after block")
+        return statements
     }
 
     private fun expressionStatement(): Stmt {
@@ -250,6 +263,7 @@ class Parser(private val tokens: List<Token>) {
         advance()
 
         while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return
             when (peek().type) {
                 CLASS -> return
                 FUN -> return
@@ -259,10 +273,8 @@ class Parser(private val tokens: List<Token>) {
                 RETURN -> return
                 VAR -> return
                 WHILE -> return
-                else -> {}
+                else -> advance()
             }
         }
-
-        advance()
     }
 }
