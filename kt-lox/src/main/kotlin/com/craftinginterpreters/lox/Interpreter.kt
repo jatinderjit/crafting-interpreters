@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox
 import com.craftinginterpreters.lox.TokenType.*
 
 object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    internal val globals = Environment()
+    private val globals = Environment()
     private var environment = globals
 
     init {
@@ -55,7 +55,7 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt)
+        val function = LoxFunction(stmt, environment)
         environment.define(stmt.name.lexeme, function)
     }
 

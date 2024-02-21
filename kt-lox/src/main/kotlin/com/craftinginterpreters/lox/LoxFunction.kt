@@ -1,8 +1,11 @@
 package com.craftinginterpreters.lox
 
-class LoxFunction(private val declaration: Stmt.Function) : LoxCallable {
+class LoxFunction(
+    private val declaration: Stmt.Function,
+    private val closure: Environment,
+) : LoxCallable {
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
-        val environment = Environment(interpreter.globals)
+        val environment = Environment(closure)
         declaration.params.forEachIndexed { i, param ->
             environment.define(param.lexeme, arguments[i])
         }
