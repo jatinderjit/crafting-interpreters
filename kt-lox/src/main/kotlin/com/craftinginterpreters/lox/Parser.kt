@@ -10,7 +10,8 @@ class ParseError : RuntimeException()
  * ```
  * program        → statement* EOF ;
  *
- * declaration    → varDecl
+ * declaration    → funDecl
+ *                | varDecl
  *                | statement ;
  *
  * statement      → exprStmt
@@ -25,6 +26,10 @@ class ParseError : RuntimeException()
  * whileStmt      → "while" "(" expression ")" statement ;
  *
  * block          → "{" declaration* "}"
+ *
+ * funDecl        → "fun" function ;
+ * function       → IDENTIFIER "(" parameters? ")" block ;
+ * parameters     → IDENTIFIER ( "," IDENTIFIER ) * ;
  *
  * varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
  *
@@ -81,8 +86,28 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun declaration(): Stmt {
+        if (match(FUN)) return function("function")
         if (match(VAR)) return varDeclaration()
         return statement()
+    }
+
+    private fun function(kind: String): Stmt {
+        val name = consume(IDENTIFIER, "Expect $kind name.")
+        consume(LEFT_PAREN, "Expect '(' after $kind name.")
+        val params = mutableListOf<Token>()
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (params.size >= 255) {
+                    // Don't throw error. Parser is not confused.
+                    error(peek(), "Can't have more than 255 parameters.")
+                }
+                params.add(consume(IDENTIFIER, "Expect parameter name"))
+            } while (match(COMMA))
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.")
+        consume(LEFT_BRACE, "Expect '{' before $kind body.")
+        val body = block()
+        return Stmt.Function(name, params, body)
     }
 
     private fun varDeclaration(): Stmt {
@@ -187,17 +212,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun expression(): Expr {
-        return comma()
-    }
-
-    private fun comma(): Expr {
-        var expr = assignment()
-        while (match(COMMA)) {
-            val operator = previous()
-            val right = assignment()
-            expr = Expr.Binary(expr, operator, right)
-        }
-        return expr
+        return assignment()
     }
 
     private fun assignment(): Expr {

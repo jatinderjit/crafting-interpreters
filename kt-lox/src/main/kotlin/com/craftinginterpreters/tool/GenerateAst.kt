@@ -18,6 +18,7 @@ private val exprTypes = listOf(
 private val stmtTypes = listOf(
     "Block       : List<Stmt> statements",
     "Expression  : Expr expression",
+    "Function    : Token name, List<Token> params, List<Stmt> body",
     "If          : Expr condition, Stmt thenBranch, Stmt? elseBranch",
     "Print       : Expr expression",
     "Var         : Token name, Expr? initializer",
