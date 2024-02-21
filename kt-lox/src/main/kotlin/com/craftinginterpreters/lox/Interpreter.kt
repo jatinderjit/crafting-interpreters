@@ -72,6 +72,11 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         println(stringify(value))
     }
 
+    override fun visitReturnStmt(stmt: Stmt.Return) {
+        val value = if (stmt.value == null) null else evaluate(stmt.value)
+        throw Return(value)
+    }
+
     override fun visitVarStmt(stmt: Stmt.Var) {
         var value: Any? = null
         if (stmt.initializer != null) {

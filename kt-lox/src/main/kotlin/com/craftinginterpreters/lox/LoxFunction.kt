@@ -6,8 +6,12 @@ class LoxFunction(private val declaration: Stmt.Function) : LoxCallable {
         declaration.params.forEachIndexed { i, param ->
             environment.define(param.lexeme, arguments[i])
         }
-        interpreter.executeBlock(declaration.body, environment)
-        return null  // TODO return actual value
+        try {
+            interpreter.executeBlock(declaration.body, environment)
+        } catch (r: Return) {
+            return r.value
+        }
+        return null
     }
 
     override fun arity(): Int =

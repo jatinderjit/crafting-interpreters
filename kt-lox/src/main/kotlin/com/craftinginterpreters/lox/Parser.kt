@@ -15,13 +15,17 @@ class ParseError : RuntimeException()
  *                | statement ;
  *
  * statement      → exprStmt
+ *                | forStmt
  *                | ifStmt
  *                | printStmt
+ *                | returnStmt
  *                | whileStmt
  *                | block ;
  *
  * ifStmt         → "if" "(" expression ")" statement
  *                  ( "else" statement )? ;
+ *
+ * returnStmt     → "return" expression? ";" ;
  *
  * whileStmt      → "while" "(" expression ")" statement ;
  *
@@ -125,6 +129,7 @@ class Parser(private val tokens: List<Token>) {
         if (match(FOR)) return forStatement()
         if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
+        if (match(RETURN)) return returnStatement()
         if (match(WHILE)) return whileStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
         return expressionStatement()
@@ -201,6 +206,13 @@ class Parser(private val tokens: List<Token>) {
         val value = expression()
         consume(SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(value)
+    }
+
+    private fun returnStatement(): Stmt {
+        val token = previous()
+        val value = if (check(SEMICOLON)) null else expression()
+        consume(SEMICOLON, "Expect ';' after return value.")
+        return Stmt.Return(token, value)
     }
 
     private fun whileStatement(): Stmt {
