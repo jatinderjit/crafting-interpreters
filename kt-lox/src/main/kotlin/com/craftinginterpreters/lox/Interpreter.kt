@@ -3,7 +3,24 @@ package com.craftinginterpreters.lox
 import com.craftinginterpreters.lox.TokenType.*
 
 object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    private var environment = Environment()
+    private val globals = Environment()
+    private var environment = globals
+
+    init {
+        builtins()
+    }
+
+    private fun builtins() {
+        globals.define("clock", object : LoxCallable {
+            /**
+             * Time in seconds
+             */
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? =
+                System.currentTimeMillis().toDouble() / 1000.0
+
+            override fun arity(): Int = 0
+        })
+    }
 
     fun interpret(statements: List<Stmt>) {
         try {
