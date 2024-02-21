@@ -7,6 +7,7 @@ class ParseError : RuntimeException()
 /**
  * Grammar:
  *
+ * ```
  * program        → statement* EOF ;
  *
  * declaration    → varDecl
@@ -60,10 +61,9 @@ class ParseError : RuntimeException()
  *                | NUMBER | STRING
  *                | "(" expression ")"
  *                | IDENTIFIER ;
+ *  ```
  */
 class Parser(private val tokens: List<Token>) {
-
-
     private var current = 0
 
     fun parse(): List<Stmt> {
@@ -95,6 +95,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(FOR)) return forStatement()
         if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
         if (match(WHILE)) return whileStatement()
@@ -115,6 +116,48 @@ class Parser(private val tokens: List<Token>) {
         val expr = expression()
         consume(SEMICOLON, "Expect ';' after expression")
         return Stmt.Expression(expr)
+    }
+
+    /**
+     * Syntactic sugar. For loop is converted to a while loop.
+     *
+     * `for (var i = 0; i < 10; i = i + 10) print i;`
+     *
+     * boils down to:
+     *
+     * ```js
+     * {
+     *   var i = 0;
+     *   while (i < 10) {
+     *     print i;
+     *     i = i + 1;
+     *   }
+     * }
+     * ```
+     */
+    private fun forStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after for")
+        val initializer = when {
+            match(SEMICOLON) -> null
+            match(VAR) -> varDeclaration()
+            else -> expressionStatement()
+        }
+
+        val condition = if (check(SEMICOLON)) null else expression()
+        consume(SEMICOLON, "Expect ';' after loop condition")
+
+        val increment = if (check(RIGHT_PAREN)) null else expression()
+        consume(RIGHT_PAREN, "Expect ')' after for clauses")
+
+        var body = statement()
+        if (increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+        body = Stmt.While(condition ?: Expr.Literal(true), body)
+        if (initializer != null) {
+            body = Stmt.Block(listOf(initializer, body))
+        }
+        return body
     }
 
     private fun ifStatement(): Stmt {
