@@ -54,8 +54,10 @@ class ParseError : RuntimeException()
  *
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  *
- * unary          → ( "!" | "-" ) unary
- *                | primary ;
+ * unary          → ( "!" | "-" ) unary | call ;
+ *
+ * call           → primary ( "(" arguments? ")" ) ;
+ * arguments      → expression ( "," expression? )* ;
  *
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
@@ -291,7 +293,30 @@ class Parser(private val tokens: List<Token>) {
             val expr = unary()
             return Expr.Unary(operator, expr)
         }
-        return primary()
+        return call()
+    }
+
+    private fun call(): Expr {
+        var expr = primary()
+        // Handle chain of function calls. Example: `f(1)(2)`
+        while (match(LEFT_PAREN)) {
+            expr = finishCall(expr)
+        }
+        return expr
+    }
+
+    private fun finishCall(callee: Expr): Expr {
+        val arguments = mutableListOf<Expr>()
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (arguments.size >= 255) {
+                    error(peek(), "Can't have more than 255 arguments.")
+                }
+                arguments.add(expression())
+            } while (match(COMMA))
+        }
+        val paren = consume(RIGHT_PAREN, "Expect ')' after arguments.")
+        return Expr.Call(callee, paren, arguments)
     }
 
     private fun primary(): Expr {

@@ -18,6 +18,9 @@ object AstPrinter : Expr.Visitor<String> {
     override fun visitAssignExpr(expr: Expr.Assign): String =
         "(= ${expr.name} ${expr.value.accept(this)})"
 
+    override fun visitCallExpr(expr: Expr.Call): String =
+        parenthesize("call", expr.callee, *expr.arguments.toTypedArray())
+
     override fun visitBinaryExpr(expr: Expr.Binary): String =
         parenthesize(expr.operator.lexeme, expr.left, expr.right)
 

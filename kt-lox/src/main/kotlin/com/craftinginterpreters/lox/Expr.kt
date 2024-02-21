@@ -9,6 +9,7 @@ abstract class Expr {
         fun visitLiteralExpr(expr: Literal): R
         fun visitLogicalExpr(expr: Logical): R
         fun visitUnaryExpr(expr: Unary): R
+        fun visitCallExpr(expr: Call): R
         fun visitVariableExpr(expr: Variable): R
     }
 
@@ -53,6 +54,12 @@ abstract class Expr {
     data class Unary(val operator: Token, val right: Expr): Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitUnaryExpr(this)
+        }
+    }
+
+    data class Call(val callee: Expr, val paren: Token, val arguments: List<Expr>): Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitCallExpr(this)
         }
     }
 

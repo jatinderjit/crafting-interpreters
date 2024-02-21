@@ -107,6 +107,18 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val function = evaluate(expr.callee)
+        val arguments = expr.arguments.map(::evaluate)
+        if (function !is LoxCallable) {
+            throw RuntimeError(expr.paren, "Can only call functions and classes.")
+        }
+        if (arguments.size != function.arity()) {
+            throw RuntimeError(expr.paren, "Expected ${function.arity()} arguments but got ${arguments.size}.")
+        }
+        return function.call(this, arguments)
+    }
+
     override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
         return if (isTruthy(evaluate(expr.condition))) {
             evaluate(expr.if_expr)
