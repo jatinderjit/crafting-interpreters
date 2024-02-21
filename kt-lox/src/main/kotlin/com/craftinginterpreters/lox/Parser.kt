@@ -84,13 +84,13 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun varDeclaration(): Stmt {
-        val name = consume(IDENTIFIER, "Expect variable name")
+        val name = consume(IDENTIFIER, "Expect variable name.")
 
         var initializer: Expr? = null
         if (match(EQUAL)) {
             initializer = expression()
         }
-        consume(SEMICOLON, "Expect ';' after variable declaration")
+        consume(SEMICOLON, "Expect ';' after variable declaration.")
         return Stmt.Var(name, initializer)
     }
 
@@ -108,13 +108,13 @@ class Parser(private val tokens: List<Token>) {
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration())
         }
-        consume(RIGHT_BRACE, "Expect '}' after block")
+        consume(RIGHT_BRACE, "Expect '}' after block.")
         return statements
     }
 
     private fun expressionStatement(): Stmt {
         val expr = expression()
-        consume(SEMICOLON, "Expect ';' after expression")
+        consume(SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
     }
 
@@ -136,7 +136,7 @@ class Parser(private val tokens: List<Token>) {
      * ```
      */
     private fun forStatement(): Stmt {
-        consume(LEFT_PAREN, "Expect '(' after for")
+        consume(LEFT_PAREN, "Expect '(' after for.")
         val initializer = when {
             match(SEMICOLON) -> null
             match(VAR) -> varDeclaration()
@@ -144,10 +144,10 @@ class Parser(private val tokens: List<Token>) {
         }
 
         val condition = if (check(SEMICOLON)) null else expression()
-        consume(SEMICOLON, "Expect ';' after loop condition")
+        consume(SEMICOLON, "Expect ';' after loop condition.")
 
         val increment = if (check(RIGHT_PAREN)) null else expression()
-        consume(RIGHT_PAREN, "Expect ')' after for clauses")
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.")
 
         var body = statement()
         if (increment != null) {
@@ -161,9 +161,9 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun ifStatement(): Stmt {
-        consume(LEFT_PAREN, "Expect '(' after if")
+        consume(LEFT_PAREN, "Expect '(' after if.")
         val condition = expression()
-        consume(RIGHT_PAREN, "Expect ')' after if condition")
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
 
         val thenBranch = statement()
         val elseBranch = if (match(ELSE)) statement() else null
@@ -172,14 +172,14 @@ class Parser(private val tokens: List<Token>) {
 
     private fun printStatement(): Stmt {
         val value = expression()
-        consume(SEMICOLON, "Expect ';' after value")
+        consume(SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(value)
     }
 
     private fun whileStatement(): Stmt {
-        consume(LEFT_PAREN, "Expect '(' after while")
+        consume(LEFT_PAREN, "Expect '(' after while.")
         val condition = expression()
-        consume(RIGHT_PAREN, "Expect ')' after condition")
+        consume(RIGHT_PAREN, "Expect ')' after condition.")
         val body = statement()
         return Stmt.While(condition, body)
     }
@@ -218,7 +218,7 @@ class Parser(private val tokens: List<Token>) {
         var expr = or()
         if (match(QUESTION_MARK)) {
             val ifExpr = ternary()
-            consume(COLON, "Expect else (\":\") condition")
+            consume(COLON, "Expect else (\":\") condition.")
             val elseExpr = ternary()
             expr = Expr.Ternary(expr, ifExpr, elseExpr)
         }
@@ -305,7 +305,7 @@ class Parser(private val tokens: List<Token>) {
         }
         if (match(LEFT_PAREN)) {
             val expr = expression()
-            consume(RIGHT_PAREN, "Expect ')' after expression")
+            consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Expr.Grouping(expr)
         }
         throw error(peek(), "Expect expression.")

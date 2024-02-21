@@ -86,12 +86,12 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             } else if (left is Double && right is Double) {
                 left + right
             } else {
-                throw RuntimeError(expr.operator, "Operands must be two numbers or two strings")
+                throw RuntimeError(expr.operator, "Operands must be two numbers or two strings.")
             }
         }
 
         if (left !is Double || right !is Double) {
-            throw RuntimeError(expr.operator, "Operands must be numbers")
+            throw RuntimeError(expr.operator, "Operands must be numbers.")
         }
         return when (expr.operator.type) {
             MINUS -> left - right
