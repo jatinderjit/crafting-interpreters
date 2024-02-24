@@ -240,14 +240,20 @@ Generated parsers:
 > JIT?
 
 - Complexity of writing a JIT.
+- Implementations are tied to specific CPU architectures.
 - JIT often needs to profile the code during the runtime, that will add memory
-  overheads.
+  overheads. This might matter more in embedded devices where memory may matter
+  more than speed.
 - If the code isn't meant to be run for long time (continuously), it might not
   be worth adding JIT.
+- Some platforms (iOS, game consoles) disallow execution of code generated at
+  runtime. The OS won't allow it.
 
 ### 3. Lisp and C
 
 > Most Lisp implementations that compile to C also contain an interpreter that
 > lets them execute Lisp code on the fly as well. Why?
 
-Probably REPL? #todo
+~~Probably REPL?~~
+
+Most Lisps support macros, which can be evaluated at the runtime.

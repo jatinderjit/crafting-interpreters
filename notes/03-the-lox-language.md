@@ -111,8 +111,6 @@ print "Hello, world!";
   would make it annoying to use for real programs? (Aside from the standard
   library, of course.)
 
-- No support for arrays / contiguous memory allocation (Though a custom class
-  can be defined, but it cannot provide guarantees since we don't have private
-  variables. Maybe super can be used for private variables?)
+- No support for arrays / contiguous memory allocation.
 - Overriding operators
 - Variadic arguments
