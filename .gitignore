@@ -1,5 +1,7 @@
 /rs-lox/target/
 
+/kt-lox/bin/
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

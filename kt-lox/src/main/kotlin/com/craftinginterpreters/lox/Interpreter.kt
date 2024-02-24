@@ -15,7 +15,7 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             /**
              * Time in seconds
              */
-            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? =
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Any =
                 System.currentTimeMillis().toDouble() / 1000.0
 
             override fun arity(): Int = 0
@@ -62,8 +62,8 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     override fun visitIfStmt(stmt: Stmt.If) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch)
-        } else if (stmt.elseBranch != null) {
-            execute(stmt.elseBranch)
+        } else {
+            stmt.elseBranch?.let(::execute)
         }
     }
 
@@ -73,15 +73,12 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitReturnStmt(stmt: Stmt.Return) {
-        val value = if (stmt.value == null) null else evaluate(stmt.value)
+        val value = stmt.value?.let(::evaluate)
         throw Return(value)
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
-        var value: Any? = null
-        if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer)
-        }
+        val value = stmt.initializer?.let(::evaluate)
         environment.define(stmt.name.lexeme, value)
     }
 
@@ -171,7 +168,7 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return expr.value
     }
 
-    override fun visitUnaryExpr(expr: Expr.Unary): Any? {
+    override fun visitUnaryExpr(expr: Expr.Unary): Any {
         val right = evaluate(expr.right)
         return when (expr.operator.type) {
             MINUS -> if (right is Double) {
@@ -189,11 +186,12 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return environment.get(expr.name)
     }
 
-    private fun isTruthy(expr: Any?): Boolean {
-        if (expr == null) return false
-        if (expr is Boolean) return expr
-        return true
-    }
+    private fun isTruthy(expr: Any?): Boolean =
+        when (expr) {
+            null -> false
+            is Boolean -> expr
+            else -> true
+        }
 
     private fun stringify(value: Any?): String {
         if (value == null) return "nil"
