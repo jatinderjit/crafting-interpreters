@@ -30,9 +30,8 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
-    private fun execute(stmt: Stmt) {
+    private fun execute(stmt: Stmt) =
         stmt.accept(this)
-    }
 
     internal fun executeBlock(statements: List<Stmt>, environment: Environment) {
         val prevEnvironment = this.environment
@@ -46,9 +45,8 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     private fun evaluate(expr: Expr): Any? = expr.accept(this)
 
-    override fun visitBlockStmt(stmt: Stmt.Block) {
+    override fun visitBlockStmt(stmt: Stmt.Block) =
         executeBlock(stmt.statements, Environment(environment))
-    }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
@@ -143,13 +141,12 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return function.call(this, arguments)
     }
 
-    override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
-        return if (isTruthy(evaluate(expr.condition))) {
+    override fun visitTernaryExpr(expr: Expr.Ternary): Any? =
+        if (isTruthy(evaluate(expr.condition))) {
             evaluate(expr.thenExpr)
         } else {
             evaluate(expr.elseExpr)
         }
-    }
 
     override fun visitLogicalExpr(expr: Expr.Logical): Any? {
         val left = evaluate(expr.left)
@@ -160,13 +157,11 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
-    override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
-        return evaluate(expr.expression)
-    }
+    override fun visitGroupingExpr(expr: Expr.Grouping): Any? =
+        evaluate(expr.expression)
 
-    override fun visitLiteralExpr(expr: Expr.Literal): Any? {
-        return expr.value
-    }
+    override fun visitLiteralExpr(expr: Expr.Literal): Any? =
+        expr.value
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any {
         val right = evaluate(expr.right)
@@ -182,9 +177,8 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.get(expr.name)
-    }
+    override fun visitVariableExpr(expr: Expr.Variable): Any? =
+        environment.get(expr.name)
 
     private fun isTruthy(expr: Any?): Boolean =
         when (expr) {
