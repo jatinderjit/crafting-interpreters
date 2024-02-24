@@ -25,7 +25,7 @@ object AstPrinter : Expr.Visitor<String> {
         parenthesize(expr.operator.lexeme, expr.left, expr.right)
 
     override fun visitTernaryExpr(expr: Expr.Ternary): String =
-        parenthesize("?:", expr.condition, expr.if_expr, expr.else_expr)
+        parenthesize("?:", expr.condition, expr.thenExpr, expr.elseExpr)
 
     override fun visitLogicalExpr(expr: Expr.Logical): String =
         parenthesize(expr.operator.lexeme, expr.left, expr.right)

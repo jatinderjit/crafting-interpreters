@@ -145,9 +145,9 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
         return if (isTruthy(evaluate(expr.condition))) {
-            evaluate(expr.if_expr)
+            evaluate(expr.thenExpr)
         } else {
-            evaluate(expr.else_expr)
+            evaluate(expr.elseExpr)
         }
     }
 

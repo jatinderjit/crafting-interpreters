@@ -27,7 +27,7 @@ abstract class Expr {
         }
     }
 
-    data class Ternary(val condition: Expr, val if_expr: Expr, val else_expr: Expr): Expr() {
+    data class Ternary(val condition: Expr, val thenExpr: Expr, val elseExpr: Expr): Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitTernaryExpr(this)
         }
