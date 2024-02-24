@@ -6,6 +6,7 @@ import kotlin.system.exitProcess
 object Lox {
     private var hadError: Boolean = false
     private var hadRuntimeError: Boolean = false
+    private val interpreter = Interpreter()
 
     fun runFile(path: String) {
         val contents = File(path).readText()
@@ -31,12 +32,16 @@ object Lox {
     private fun run(source: String) {
         val scanner = Scanner(source)
         val tokens = scanner.scanTokens()
+
         val parser = Parser(tokens)
         val statements = parser.parse()
-
         if (hadError) return
 
-        Interpreter.interpret(statements)
+        val resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        if (hadError) return
+
+        interpreter.interpret(statements)
     }
 
     fun error(line: Int, message: String) {
@@ -57,8 +62,7 @@ object Lox {
     }
 
     fun runtimeError(error: RuntimeError) {
-        println(error.message)
-        println("[line ${error.token.line}]")
+        System.err.println("[line ${error.token.line}] Error: ${error.message}")
         hadRuntimeError = true
     }
 }

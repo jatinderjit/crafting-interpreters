@@ -2,9 +2,10 @@ package com.craftinginterpreters.lox
 
 import com.craftinginterpreters.lox.TokenType.*
 
-object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     private val globals = Environment()
     private var environment = globals
+    private val locals = HashMap<Expr, Int>()
 
     init {
         builtins()
@@ -28,6 +29,10 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         } catch (error: RuntimeError) {
             Lox.runtimeError(error)
         }
+    }
+
+    fun resolve(expr: Expr, depth: Int) {
+        locals[expr] = depth
     }
 
     private fun execute(stmt: Stmt) =
@@ -88,7 +93,13 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = evaluate(expr.value)
-        environment.assign(expr.name, value)
+        locals[expr].let { distance ->
+            if (distance != null) {
+                environment.assignAt(distance, expr.name, value)
+            } else {
+                globals.assign(expr.name, value)
+            }
+        }
         return value
     }
 
@@ -178,7 +189,16 @@ object Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? =
-        environment.get(expr.name)
+        lookUpVariable(expr.name, expr)
+
+    private fun lookUpVariable(name: Token, expr: Expr): Any? =
+        locals[expr].let { distance ->
+            if (distance != null) {
+                environment.getAt(distance, name)
+            } else {
+                globals.get(name)
+            }
+        }
 
     private fun isTruthy(expr: Any?): Boolean =
         when (expr) {

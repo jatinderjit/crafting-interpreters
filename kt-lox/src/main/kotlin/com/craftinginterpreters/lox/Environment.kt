@@ -8,7 +8,7 @@ class Environment(private val enclosing: Environment? = null) {
     }
 
     fun get(name: Token): Any? {
-        if (values.containsKey(name.lexeme)) {
+        if (name.lexeme in values) {
             return values[name.lexeme]
         }
         if (enclosing != null) {
@@ -17,8 +17,11 @@ class Environment(private val enclosing: Environment? = null) {
         throw RuntimeError(name, "Undefined variable ${name.lexeme}")
     }
 
+    fun getAt(distance: Int, name: Token): Any? =
+        ancestor(distance).values[name.lexeme]
+
     fun assign(name: Token, value: Any?) {
-        if (values.containsKey(name.lexeme)) {
+        if (name.lexeme in values) {
             values[name.lexeme] = value
             return
         }
@@ -26,5 +29,17 @@ class Environment(private val enclosing: Environment? = null) {
             return enclosing.assign(name, value)
         }
         throw RuntimeError(name, "Undefined variable ${name.lexeme}")
+    }
+
+    fun assignAt(distance: Int, name: Token, value: Any?) {
+        ancestor(distance).values[name.lexeme] = value
+    }
+
+    private fun ancestor(distance: Int): Environment {
+        var environment = this
+        for (i in 0..<distance) {
+            environment = environment.enclosing!!
+        }
+        return environment
     }
 }
