@@ -138,7 +138,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
 
     private fun declare(name: Token) {
         if (scopes.empty()) return
-        scopes.peek()[name.lexeme] = false
+        val scope = scopes.peek()
+        if (name.lexeme in scope) {
+            Lox.error(name, "Already a variable with this name in this scope.")
+        }
+        scope[name.lexeme] = false
     }
 
     private fun define(name: Token) {
