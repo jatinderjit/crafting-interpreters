@@ -2,6 +2,11 @@ package com.craftinginterpreters.lox
 
 import java.util.*
 
+private enum class FunctionType {
+    NONE,
+    FUNCTION,
+}
+
 class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     /**
      * The boolean in the map represents if the variable has just declared, or
@@ -14,6 +19,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
      * - _Define_ the variable `a`. Now it will be available for resolution.
      */
     private val scopes = Stack<MutableMap<String, Boolean>>()
+
+    private var currentFunction = FunctionType.NONE
 
     private fun resolve(expr: Expr) =
         expr.accept(this)
@@ -97,10 +104,13 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         declare(stmt.name)
         // Unlike function, define the name early to allow recursion.
         define(stmt.name)
-        resolveFunction(stmt)
+        resolveFunction(stmt, FunctionType.FUNCTION)
     }
 
-    private fun resolveFunction(function: Stmt.Function) {
+    private fun resolveFunction(function: Stmt.Function, type: FunctionType) {
+        val enclosingFunction = currentFunction
+        currentFunction = type
+
         beginScope()
         function.params.forEach { param ->
             declare(param)
@@ -108,6 +118,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         }
         resolve(function.body)
         endScope()
+
+        currentFunction = enclosingFunction
     }
 
     override fun visitIfStmt(stmt: Stmt.If) {
@@ -120,6 +132,9 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         resolve(stmt.expression)
 
     override fun visitReturnStmt(stmt: Stmt.Return) {
+        if (currentFunction == FunctionType.NONE) {
+            Lox.error(stmt.keyword, "Can't return from top-level code.")
+        }
         stmt.value?.let(::resolve)
     }
 

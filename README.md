@@ -12,3 +12,6 @@
 6. [Parsing Expressions](./notes/06-parsing-expressions.md)
 7. Evaluating Expressions
 8. [Statements and State](./notes/08-statements-and-state.md)
+9. Control Flow
+10. Functions
+11. Resolving and Binding
