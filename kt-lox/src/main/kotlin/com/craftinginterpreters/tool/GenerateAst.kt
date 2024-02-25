@@ -84,7 +84,7 @@ class GenerateAst(outputDir: String, private val baseName: String, private val d
             "val $it"
         }
         w.println()
-        w.println("    data class ${typeDefinition.name}($params): $baseName() {")
+        w.println("    class ${typeDefinition.name}($params) : $baseName() {")
         w.println("        override fun <R> accept(visitor: Visitor<R>): R {")
         w.println("            return visitor.visit${typeDefinition.name}$baseName(this)")
         w.println("        }")
