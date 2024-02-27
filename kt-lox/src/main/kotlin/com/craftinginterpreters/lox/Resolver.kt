@@ -5,6 +5,7 @@ import java.util.*
 private enum class FunctionType {
     NONE,
     FUNCTION,
+    METHOD,
 }
 
 class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
@@ -104,6 +105,9 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitClassStmt(stmt: Stmt.Class) {
         declare(stmt.name)
         define(stmt.name)
+        stmt.methods.forEach {
+            resolveFunction(it, FunctionType.METHOD)
+        }
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
