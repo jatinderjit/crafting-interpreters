@@ -105,9 +105,15 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitClassStmt(stmt: Stmt.Class) {
         declare(stmt.name)
         define(stmt.name)
+
+        beginScope()
+        scopes.peek()["this"] = true
+
         stmt.methods.forEach {
             resolveFunction(it, FunctionType.METHOD)
         }
+
+        endScope()
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
@@ -153,6 +159,10 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
             Lox.error(stmt.keyword, "Can't return from top-level code.")
         }
         stmt.value?.let(::resolve)
+    }
+
+    override fun visitThisExpr(expr: Expr.This) {
+        resolveLocal(expr, expr.keyword)
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
