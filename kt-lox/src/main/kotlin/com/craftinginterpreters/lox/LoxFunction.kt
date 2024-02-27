@@ -13,6 +13,7 @@ class LoxFunction(
         try {
             interpreter.executeBlock(declaration.body, environment)
         } catch (r: Return) {
+            if (isInitializer) return closure.getAt(0, "this")
             return r.value
         }
         if (isInitializer) return closure.getAt(0, "this")

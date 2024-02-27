@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox
 
+import com.craftinginterpreters.lox.FunctionType.*
 import java.util.*
 
 private enum class ClassType {
@@ -10,6 +11,7 @@ private enum class ClassType {
 private enum class FunctionType {
     NONE,
     FUNCTION,
+    INITIALIZER,
     METHOD,
 }
 
@@ -27,7 +29,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     private val scopes = Stack<MutableMap<String, Boolean>>()
 
     private var currentClass = ClassType.NONE
-    private var currentFunction = FunctionType.NONE
+    private var currentFunction = NONE
 
     private fun resolve(expr: Expr) =
         expr.accept(this)
@@ -118,7 +120,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         beginScope()
         scopes.peek()["this"] = true
         stmt.methods.forEach {
-            resolveFunction(it, FunctionType.METHOD)
+            val type = if (it.name.lexeme == "init") INITIALIZER else METHOD
+            resolveFunction(it, type)
         }
         endScope()
 
@@ -133,7 +136,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         declare(stmt.name)
         // Unlike function, define the name early to allow recursion.
         define(stmt.name)
-        resolveFunction(stmt, FunctionType.FUNCTION)
+        resolveFunction(stmt, FUNCTION)
     }
 
     private fun resolveFunction(function: Stmt.Function, type: FunctionType) {
@@ -164,8 +167,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         resolve(stmt.expression)
 
     override fun visitReturnStmt(stmt: Stmt.Return) {
-        if (currentFunction == FunctionType.NONE) {
+        if (currentFunction == NONE) {
             Lox.error(stmt.keyword, "Can't return from top-level code.")
+        }
+        if (stmt.value != null && currentFunction == INITIALIZER) {
+            Lox.error(stmt.keyword, "Can't return a value from an initializer.")
         }
         stmt.value?.let(::resolve)
     }
