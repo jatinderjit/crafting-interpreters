@@ -2,6 +2,11 @@ package com.craftinginterpreters.lox
 
 import java.util.*
 
+private enum class ClassType {
+    NONE,
+    CLASS,
+}
+
 private enum class FunctionType {
     NONE,
     FUNCTION,
@@ -21,6 +26,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
      */
     private val scopes = Stack<MutableMap<String, Boolean>>()
 
+    private var currentClass = ClassType.NONE
     private var currentFunction = FunctionType.NONE
 
     private fun resolve(expr: Expr) =
@@ -103,17 +109,20 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val enclosingClass = currentClass
+        currentClass = ClassType.CLASS
         declare(stmt.name)
         define(stmt.name)
 
+        // This scope is only to capture "this"
         beginScope()
         scopes.peek()["this"] = true
-
         stmt.methods.forEach {
             resolveFunction(it, FunctionType.METHOD)
         }
-
         endScope()
+
+        currentClass = enclosingClass
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
@@ -162,6 +171,10 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     override fun visitThisExpr(expr: Expr.This) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'this' outside of a class.")
+            return
+        }
         resolveLocal(expr, expr.keyword)
     }
 
