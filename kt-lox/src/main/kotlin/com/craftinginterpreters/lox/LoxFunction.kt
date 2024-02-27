@@ -3,6 +3,7 @@ package com.craftinginterpreters.lox
 class LoxFunction(
     private val declaration: Stmt.Function,
     private val closure: Environment,
+    private val isInitializer: Boolean,
 ) : LoxCallable {
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
         val environment = Environment(closure)
@@ -14,6 +15,7 @@ class LoxFunction(
         } catch (r: Return) {
             return r.value
         }
+        if (isInitializer) return closure.getAt(0, "this")
         return null
     }
 
@@ -26,6 +28,6 @@ class LoxFunction(
     fun bind(instance: LoxInstance): LoxFunction {
         val environment = Environment(closure)
         environment.define("this", instance)
-        return LoxFunction(declaration, environment)
+        return LoxFunction(declaration, environment, isInitializer)
     }
 }

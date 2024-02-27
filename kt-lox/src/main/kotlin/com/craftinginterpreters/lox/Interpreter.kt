@@ -58,7 +58,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
         val methods = mutableMapOf<String, LoxFunction>()
         stmt.methods.forEach { method ->
-            val function = LoxFunction(method, environment)
+            val isInitializer = method.name.lexeme == "init"
+            val function = LoxFunction(method, environment, isInitializer)
             methods[method.name.lexeme] = function
         }
         val klass = LoxClass(stmt.name.lexeme, methods)
@@ -70,7 +71,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt, environment)
+        val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
     }
 
@@ -225,7 +226,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     private fun lookUpVariable(name: Token, expr: Expr): Any? =
         locals[expr].let { distance ->
             if (distance != null) {
-                environment.getAt(distance, name)
+                environment.getAt(distance, name.lexeme)
             } else {
                 globals.get(name)
             }
