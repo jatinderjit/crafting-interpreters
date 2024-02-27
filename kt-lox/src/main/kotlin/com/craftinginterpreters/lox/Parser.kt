@@ -10,9 +10,12 @@ class ParseError : RuntimeException()
  * ```
  * program        → statement* EOF ;
  *
- * declaration    → funDecl
+ * declaration    → classDecl
+ *                | funDecl
  *                | varDecl
  *                | statement ;
+ *
+ * classDecl      → "class" IDENTIFIER "{" function* "}" ;
  *
  * statement      → exprStmt
  *                | forStmt
@@ -90,12 +93,26 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun declaration(): Stmt {
+        if (match(CLASS)) return classDeclaration()
         if (match(FUN)) return function("function")
         if (match(VAR)) return varDeclaration()
         return statement()
     }
 
-    private fun function(kind: String): Stmt {
+    private fun classDeclaration(): Stmt {
+        val name = consume(IDENTIFIER, "Expect class name.")
+        consume(LEFT_BRACE, "Expect '{' before class body.")
+
+        val methods = mutableListOf<Stmt.Function>()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.")
+        return Stmt.Class(name, methods)
+    }
+
+    private fun function(kind: String): Stmt.Function {
         val name = consume(IDENTIFIER, "Expect $kind name.")
         consume(LEFT_PAREN, "Expect '(' after $kind name.")
         val params = mutableListOf<Token>()
