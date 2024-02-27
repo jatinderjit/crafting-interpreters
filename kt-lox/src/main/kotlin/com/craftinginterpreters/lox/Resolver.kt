@@ -74,6 +74,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         resolve(expr.right)
     }
 
+    override fun visitSetExpr(expr: Expr.Set) {
+        resolve(expr.value)
+        resolve(expr.obj)
+    }
+
     override fun visitUnaryExpr(expr: Expr.Unary) =
         resolve(expr.right)
 
@@ -126,6 +131,9 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
 
         currentFunction = enclosingFunction
     }
+
+    override fun visitGetExpr(expr: Expr.Get) =
+        resolve(expr.obj)
 
     override fun visitIfStmt(stmt: Stmt.If) {
         resolve(stmt.condition)
