@@ -10,9 +10,12 @@ class ParseError : RuntimeException()
  * ```
  * program        → statement* EOF ;
  *
- * declaration    → funDecl
+ * declaration    → classDecl
+ *                | funDecl
  *                | varDecl
  *                | statement ;
+ *
+ * classDecl      → "class" IDENTIFIER "{" function* "}" ;
  *
  * statement      → exprStmt
  *                | forStmt
@@ -45,7 +48,7 @@ class ParseError : RuntimeException()
  *
  * comma          → assignment ( "," assignment)* ;
  *
- * assignment     → IDENTIFIER "=" assignment
+ * assignment     → ( call "." )? IDENTIFIER "=" assignment
  *                | ternary ;
  *
  * ternary        → equality "?" ternary ":" ternary
@@ -65,7 +68,7 @@ class ParseError : RuntimeException()
  *
  * unary          → ( "!" | "-" ) unary | call ;
  *
- * call           → primary ( "(" arguments? ")" ) ;
+ * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  * arguments      → expression ( "," expression? )* ;
  *
  * primary        → "true" | "false" | "nil"
@@ -90,12 +93,26 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun declaration(): Stmt {
+        if (match(CLASS)) return classDeclaration()
         if (match(FUN)) return function("function")
         if (match(VAR)) return varDeclaration()
         return statement()
     }
 
-    private fun function(kind: String): Stmt {
+    private fun classDeclaration(): Stmt {
+        val name = consume(IDENTIFIER, "Expect class name.")
+        consume(LEFT_BRACE, "Expect '{' before class body.")
+
+        val methods = mutableListOf<Stmt.Function>()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.")
+        return Stmt.Class(name, methods)
+    }
+
+    private fun function(kind: String): Stmt.Function {
         val name = consume(IDENTIFIER, "Expect $kind name.")
         consume(LEFT_PAREN, "Expect '(' after $kind name.")
         val params = mutableListOf<Token>()
@@ -232,13 +249,14 @@ class Parser(private val tokens: List<Token>) {
         if (match(EQUAL)) {
             val equals = previous()
             val value = assignment()
-            if (expr is Expr.Variable) {
-                return Expr.Assign(expr.name, value)
+            when (expr) {
+                is Expr.Variable -> return Expr.Assign(expr.name, value)
+                is Expr.Get -> return Expr.Set(expr.obj, expr.name, value)
+                // Report an error, without throwing it.
+                // Parser isn't in a confused state. We don't need to go into panic
+                // mode and synchronize.
+                else -> error(equals, "Invalid assignment target.")
             }
-            // Report an error, without throwing it.
-            // Parser isn't in a confused state. We don't need to go into panic
-            // mode and synchronize.
-            error(equals, "Invalid assignment target.")
         }
         return expr
     }
@@ -326,8 +344,16 @@ class Parser(private val tokens: List<Token>) {
     private fun call(): Expr {
         var expr = primary()
         // Handle chain of function calls. Example: `f(1)(2)`
-        while (match(LEFT_PAREN)) {
-            expr = finishCall(expr)
+        while (true) {
+            expr = when {
+                match(LEFT_PAREN) -> finishCall(expr)
+                match(DOT) -> {
+                    val name = consume(IDENTIFIER, "Expect property name after '.'.")
+                    Expr.Get(expr, name)
+                }
+
+                else -> break
+            }
         }
         return expr
     }
@@ -350,6 +376,7 @@ class Parser(private val tokens: List<Token>) {
         if (match(FALSE)) return Expr.Literal(false)
         if (match(TRUE)) return Expr.Literal(true)
         if (match(NIL)) return Expr.Literal(null)
+        if (match(THIS)) return Expr.This(previous())
         if (match(IDENTIFIER)) return Expr.Variable(previous())
 
         if (match(NUMBER, STRING)) {

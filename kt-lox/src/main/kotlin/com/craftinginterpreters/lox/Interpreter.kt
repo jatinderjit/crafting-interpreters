@@ -53,12 +53,25 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     override fun visitBlockStmt(stmt: Stmt.Block) =
         executeBlock(stmt.statements, Environment(environment))
 
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        environment.define(stmt.name.lexeme, null)
+
+        val methods = mutableMapOf<String, LoxFunction>()
+        stmt.methods.forEach { method ->
+            val isInitializer = method.name.lexeme == "init"
+            val function = LoxFunction(method, environment, isInitializer)
+            methods[method.name.lexeme] = function
+        }
+        val klass = LoxClass(stmt.name.lexeme, methods)
+        environment.assign(stmt.name, klass)
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt, environment)
+        val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
     }
 
@@ -114,12 +127,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
 
         if (expr.operator.type == PLUS) {
-            return if (left is String && right is String) {
-                left + right
-            } else if (left is Double && right is Double) {
-                left + right
-            } else {
-                throw RuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+            return when {
+                left is String && right is String -> left + right
+                left is Double && right is Double -> left + right
+                else -> throw RuntimeError(expr.operator, "Operands must be two numbers or two strings.")
             }
         }
 
@@ -140,24 +151,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
-    override fun visitCallExpr(expr: Expr.Call): Any? {
-        val function = evaluate(expr.callee)
-        val arguments = expr.arguments.map(::evaluate)
-        if (function !is LoxCallable) {
-            throw RuntimeError(expr.paren, "Can only call functions and classes.")
-        }
-        if (arguments.size != function.arity()) {
-            throw RuntimeError(expr.paren, "Expected ${function.arity()} arguments but got ${arguments.size}.")
-        }
-        return function.call(this, arguments)
-    }
-
     override fun visitTernaryExpr(expr: Expr.Ternary): Any? =
         if (isTruthy(evaluate(expr.condition))) {
             evaluate(expr.thenExpr)
         } else {
             evaluate(expr.elseExpr)
         }
+
+    override fun visitGroupingExpr(expr: Expr.Grouping): Any? =
+        evaluate(expr.expression)
+
+    override fun visitLiteralExpr(expr: Expr.Literal): Any? =
+        expr.value
 
     override fun visitLogicalExpr(expr: Expr.Logical): Any? {
         val left = evaluate(expr.left)
@@ -168,11 +173,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
-    override fun visitGroupingExpr(expr: Expr.Grouping): Any? =
-        evaluate(expr.expression)
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val obj = evaluate(expr.obj)
+        if (obj !is LoxInstance) {
+            throw RuntimeError(expr.name, "Only instances have fields.")
+        }
+        val value = evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
+    }
 
-    override fun visitLiteralExpr(expr: Expr.Literal): Any? =
-        expr.value
+    override fun visitThisExpr(expr: Expr.This): Any? =
+        lookUpVariable(expr.keyword, expr)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any {
         val right = evaluate(expr.right)
@@ -188,13 +200,33 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         }
     }
 
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val function = evaluate(expr.callee)
+        val arguments = expr.arguments.map(::evaluate)
+        if (function !is LoxCallable) {
+            throw RuntimeError(expr.paren, "Can only call functions and classes.")
+        }
+        if (arguments.size != function.arity()) {
+            throw RuntimeError(expr.paren, "Expected ${function.arity()} arguments but got ${arguments.size}.")
+        }
+        return function.call(this, arguments)
+    }
+
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val obj = evaluate(expr.obj)
+        if (obj !is LoxInstance) {
+            throw RuntimeError(expr.name, "Only instances have properties.")
+        }
+        return obj.get(expr.name)
+    }
+
     override fun visitVariableExpr(expr: Expr.Variable): Any? =
         lookUpVariable(expr.name, expr)
 
     private fun lookUpVariable(name: Token, expr: Expr): Any? =
         locals[expr].let { distance ->
             if (distance != null) {
-                environment.getAt(distance, name)
+                environment.getAt(distance, name.lexeme)
             } else {
                 globals.get(name)
             }
