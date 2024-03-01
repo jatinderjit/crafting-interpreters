@@ -111,6 +111,13 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        stmt.superclass?.let {
+            if (it.name.lexeme == stmt.name.lexeme) {
+                Lox.error(it.name, "A class can't inherit from itself.")
+            }
+            resolve(it)
+        }
+
         val enclosingClass = currentClass
         currentClass = ClassType.CLASS
         declare(stmt.name)

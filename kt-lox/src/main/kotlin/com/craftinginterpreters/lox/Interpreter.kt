@@ -54,6 +54,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         executeBlock(stmt.statements, Environment(environment))
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val superclass = stmt.superclass?.let {
+            val superclass = evaluate(it)
+            if (superclass !is LoxClass) {
+                throw RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+            }
+            superclass
+        }
+
         environment.define(stmt.name.lexeme, null)
 
         val methods = mutableMapOf<String, LoxFunction>()
@@ -62,7 +70,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             val function = LoxFunction(method, environment, isInitializer)
             methods[method.name.lexeme] = function
         }
-        val klass = LoxClass(stmt.name.lexeme, methods)
+        val klass = LoxClass(stmt.name.lexeme, superclass, methods)
         environment.assign(stmt.name, klass)
     }
 

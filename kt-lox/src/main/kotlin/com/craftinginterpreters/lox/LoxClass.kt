@@ -2,6 +2,7 @@ package com.craftinginterpreters.lox
 
 class LoxClass(
     internal val name: String,
+    private val superclass: LoxClass?,
     private val methods: MutableMap<String, LoxFunction>,
 ) : LoxCallable {
     override fun call(interpreter: Interpreter, arguments: List<Any?>): LoxInstance {
