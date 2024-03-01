@@ -38,6 +38,9 @@ object AstPrinter : Expr.Visitor<String> {
     override fun visitSetExpr(expr: Expr.Set): String =
         "(set ${expr.obj.accept(this)}.${expr.name} ${expr.value})"
 
+    override fun visitSuperExpr(expr: Expr.Super): String =
+        "(super ${expr.accept(this)})"
+
     override fun visitThisExpr(expr: Expr.This): String =
         "this"
 

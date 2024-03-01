@@ -74,6 +74,7 @@ class ParseError : RuntimeException()
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
+ *                | "super" "." IDENTIFIER
  *                | IDENTIFIER ;
  *  ```
  */
@@ -384,6 +385,12 @@ class Parser(private val tokens: List<Token>) {
         if (match(THIS)) return Expr.This(previous())
         if (match(IDENTIFIER)) return Expr.Variable(previous())
 
+        if (match(SUPER)) {
+            val keyword = previous()
+            consume(DOT, "Expect '.' after 'super'")
+            val method = consume(IDENTIFIER, "Expect superclass method name.")
+            return Expr.Super(keyword, method)
+        }
         if (match(NUMBER, STRING)) {
             return Expr.Literal(previous().literal)
         }

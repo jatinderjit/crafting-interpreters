@@ -31,19 +31,26 @@ class Base {
   }
 }
 var base = Base();
+print "Expect: From base: base";
 base.log();
+print "";
 
 class Derived < Base {
    init() {
      this.value = "derived";
    }
    log2() {
-      print "From Derived:";
+      print "From Derived (log2):";
       super.log();
    }
 }
 var derived = Derived();
+print "Expect: From base: derived";
 derived.log();
+
+print "";
+print "Expect: From Derived (log2): From base: derived";
+derived.log2();
 
 print "************************************************";
 class A {
@@ -52,8 +59,17 @@ class A {
   }
 }
 
-class B < A {}
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
 
 class C < B {}
 
-C().method();
+print "Expect: A method";
+C().test();
