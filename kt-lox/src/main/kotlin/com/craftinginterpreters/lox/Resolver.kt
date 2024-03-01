@@ -6,6 +6,7 @@ import java.util.*
 private enum class ClassType {
     NONE,
     CLASS,
+    SUBCLASS,
 }
 
 private enum class FunctionType {
@@ -119,7 +120,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         }
 
         val enclosingClass = currentClass
-        currentClass = ClassType.CLASS
+        currentClass = if (stmt.superclass == null) ClassType.CLASS else ClassType.SUBCLASS
         declare(stmt.name)
         define(stmt.name)
 
@@ -194,7 +195,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitSuperExpr(expr: Expr.Super) {
         if (currentClass == ClassType.NONE) {
             Lox.error(expr.keyword, "Can't use 'super' outside of a class.")
-            return
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expr.keyword, "Can't use 'super' in a class with no superclass.")
         }
         resolveLocal(expr, expr.keyword)
     }
