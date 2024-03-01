@@ -1,0 +1,34 @@
+print "Numbers:";
+var a = 123;
+var b = 4.56;
+var c = a + b;
+print "a + b = 123 + 4.56 =";
+print c;
+
+print "************************************************";
+print "Fibonacci: (Functions (recursive), if/else and loops)";
+
+fun fib(n) {
+  if (n <= 1) return n;
+  else return fib(n - 2) + fib(n - 1);
+}
+
+for (var i = 0; i < 8; i = i + 1) {
+  print fib(i);
+}
+
+print "************************************************";
+print "Counter (closure)";
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    return i;
+  }
+  return count;
+}
+
+var counter = makeCounter();
+print counter();
+print counter();

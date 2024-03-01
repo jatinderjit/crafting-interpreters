@@ -1,0 +1,54 @@
+// Linked List without classes/objects.
+
+fun ll(v) {
+    var val = v;
+    var next;
+
+    fun set(v) {
+        val = v;
+    }
+
+    fun prepend(v) {
+        var new = ll(v);
+    }
+
+    fun setNext(n) {
+        next = n;
+    }
+
+    fun node(op) {
+        if (op == "val") {
+            return val;
+        }
+        if (op == "set") {
+            return set;
+        }
+        if (op == "next") {
+            return next;
+        }
+        if (op == "setNext") {
+            return setNext;
+        }
+        if (op == "prepend") {
+            return prepend;
+        }
+        if (op == "add") {
+            return add;
+        }
+    }
+    return node;
+}
+
+var n1 = ll(5);
+var n2 = ll(10);
+var n3 = ll(15);
+
+print n1("val");  // 5
+n1("set")(6);
+print n1("val");  // 6
+
+n1("setNext")(n2);
+n2("setNext")(n3);
+
+print "n1.next.next";
+print n1("next")("next")("val");
