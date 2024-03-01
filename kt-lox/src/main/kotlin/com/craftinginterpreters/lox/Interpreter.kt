@@ -199,8 +199,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return value
     }
 
-    override fun visitSuperExpr(expr: Expr.Super): Any? {
-        // TODO: handle if super not present (not a subclass)
+    override fun visitSuperExpr(expr: Expr.Super): Any {
+        // super must be present (Resolver will error if this isn't inside a subclass).
         val distance = locals[expr]!!
         val superclass = environment.getAt(distance, "super") as LoxClass
         // "super" is always 1 environment above "this"
