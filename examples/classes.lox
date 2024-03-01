@@ -26,6 +26,7 @@ class Base {
     this.value = "base";
   }
   log() {
+    print "From base:";
     print this.value;
   }
 }
@@ -36,6 +37,23 @@ class Derived < Base {
    init() {
      this.value = "derived";
    }
+   log2() {
+      print "From Derived:";
+      super.log();
+   }
 }
 var derived = Derived();
 derived.log();
+
+print "************************************************";
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {}
+
+class C < B {}
+
+C().method();
