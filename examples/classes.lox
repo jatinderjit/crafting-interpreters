@@ -1,0 +1,41 @@
+class Person {
+  init(name) {
+    this.name = name;
+  }
+
+  hi() {
+    return "Hi";
+  }
+
+  greet() {
+    print this.hi();
+    print "I am";
+    print this.name;
+  }
+}
+var person = Person("J");
+person.greet();
+person.init("T");
+person.greet();
+
+print "************************************************";
+// Inheritance
+
+class Base {
+  init() {
+    this.value = "base";
+  }
+  log() {
+    print this.value;
+  }
+}
+var base = Base();
+base.log();
+
+class Derived < Base {
+   init() {
+     this.value = "derived";
+   }
+}
+var derived = Derived();
+derived.log();

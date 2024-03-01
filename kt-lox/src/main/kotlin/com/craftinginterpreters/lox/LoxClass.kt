@@ -18,7 +18,7 @@ class LoxClass(
     }
 
     fun findMethod(name: String): LoxFunction? =
-        methods[name]
+        methods[name] ?: superclass?.methods?.get(name)
 
     override fun toString(): String =
         "<class: $name>"
