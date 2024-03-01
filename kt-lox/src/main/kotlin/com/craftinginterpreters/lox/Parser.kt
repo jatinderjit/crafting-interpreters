@@ -15,7 +15,7 @@ class ParseError : RuntimeException()
  *                | varDecl
  *                | statement ;
  *
- * classDecl      → "class" IDENTIFIER "{" function* "}" ;
+ * classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
  *
  * statement      → exprStmt
  *                | forStmt
@@ -74,6 +74,7 @@ class ParseError : RuntimeException()
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
+ *                | "super" "." IDENTIFIER
  *                | IDENTIFIER ;
  *  ```
  */
@@ -101,6 +102,11 @@ class Parser(private val tokens: List<Token>) {
 
     private fun classDeclaration(): Stmt {
         val name = consume(IDENTIFIER, "Expect class name.")
+
+        val superclass = if (match(LESS)) {
+            Expr.Variable(consume(IDENTIFIER, "Expect superclass name."))
+        } else null
+
         consume(LEFT_BRACE, "Expect '{' before class body.")
 
         val methods = mutableListOf<Stmt.Function>()
@@ -109,7 +115,7 @@ class Parser(private val tokens: List<Token>) {
         }
 
         consume(RIGHT_BRACE, "Expect '}' after class body.")
-        return Stmt.Class(name, methods)
+        return Stmt.Class(name, superclass, methods)
     }
 
     private fun function(kind: String): Stmt.Function {
@@ -379,6 +385,12 @@ class Parser(private val tokens: List<Token>) {
         if (match(THIS)) return Expr.This(previous())
         if (match(IDENTIFIER)) return Expr.Variable(previous())
 
+        if (match(SUPER)) {
+            val keyword = previous()
+            consume(DOT, "Expect '.' after 'super'")
+            val method = consume(IDENTIFIER, "Expect superclass method name.")
+            return Expr.Super(keyword, method)
+        }
         if (match(NUMBER, STRING)) {
             return Expr.Literal(previous().literal)
         }

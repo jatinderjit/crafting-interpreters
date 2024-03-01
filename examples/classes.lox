@@ -1,0 +1,75 @@
+class Person {
+  init(name) {
+    this.name = name;
+  }
+
+  hi() {
+    return "Hi";
+  }
+
+  greet() {
+    print this.hi();
+    print "I am";
+    print this.name;
+  }
+}
+var person = Person("J");
+person.greet();
+person.init("T");
+person.greet();
+
+print "************************************************";
+// Inheritance
+
+class Base {
+  init() {
+    this.value = "base";
+  }
+  log() {
+    print "From base:";
+    print this.value;
+  }
+}
+var base = Base();
+print "Expect: From base: base";
+base.log();
+print "";
+
+class Derived < Base {
+   init() {
+     this.value = "derived";
+   }
+   log2() {
+      print "From Derived (log2):";
+      super.log();
+   }
+}
+var derived = Derived();
+print "Expect: From base: derived";
+derived.log();
+
+print "";
+print "Expect: From Derived (log2): From base: derived";
+derived.log2();
+
+print "************************************************";
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
+
+class C < B {}
+
+print "Expect: A method";
+C().test();

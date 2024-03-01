@@ -11,6 +11,7 @@ private val exprTypes = listOf(
     "Literal   : Any? value",
     "Logical   : Expr left, Token operator, Expr right",
     "Set       : Expr obj, Token name, Expr value",
+    "Super     : Token keyword, Token method",
     "This      : Token keyword",
     "Unary     : Token operator, Expr right",
     "Call      : Expr callee, Token paren, List<Expr> arguments",
@@ -20,7 +21,7 @@ private val exprTypes = listOf(
 
 private val stmtTypes = listOf(
     "Block       : List<Stmt> statements",
-    "Class       : Token name, List<Stmt.Function> methods",
+    "Class       : Token name, Expr.Variable? superclass, List<Stmt.Function> methods",
     "Expression  : Expr expression",
     "Function    : Token name, List<Token> params, List<Stmt> body",
     "If          : Expr condition, Stmt thenBranch, Stmt? elseBranch",

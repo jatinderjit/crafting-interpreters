@@ -6,6 +6,7 @@ import java.util.*
 private enum class ClassType {
     NONE,
     CLASS,
+    SUBCLASS,
 }
 
 private enum class FunctionType {
@@ -111,10 +112,23 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        stmt.superclass?.let {
+            if (it.name.lexeme == stmt.name.lexeme) {
+                Lox.error(it.name, "A class can't inherit from itself.")
+            }
+            resolve(it)
+        }
+
         val enclosingClass = currentClass
-        currentClass = ClassType.CLASS
+        currentClass = if (stmt.superclass == null) ClassType.CLASS else ClassType.SUBCLASS
         declare(stmt.name)
         define(stmt.name)
+
+        // This scope is only to capture "super"
+        if (stmt.superclass != null) {
+            beginScope()
+            scopes.peek()["super"] = true
+        }
 
         // This scope is only to capture "this"
         beginScope()
@@ -124,6 +138,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
             resolveFunction(it, type)
         }
         endScope()
+
+        if (stmt.superclass != null) endScope()
 
         currentClass = enclosingClass
     }
@@ -174,6 +190,15 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
             Lox.error(stmt.keyword, "Can't return a value from an initializer.")
         }
         stmt.value?.let(::resolve)
+    }
+
+    override fun visitSuperExpr(expr: Expr.Super) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'super' outside of a class.")
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expr.keyword, "Can't use 'super' in a class with no superclass.")
+        }
+        resolveLocal(expr, expr.keyword)
     }
 
     override fun visitThisExpr(expr: Expr.This) {

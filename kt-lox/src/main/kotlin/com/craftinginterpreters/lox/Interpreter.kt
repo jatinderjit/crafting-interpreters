@@ -54,7 +54,21 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         executeBlock(stmt.statements, Environment(environment))
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val superclass = stmt.superclass?.let {
+            val superclass = evaluate(it)
+            if (superclass !is LoxClass) {
+                throw RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+            }
+            superclass
+        }
+
         environment.define(stmt.name.lexeme, null)
+
+        val prevEnvironment = environment
+        if (stmt.superclass != null) {
+            environment = Environment(environment)
+            environment.define("super", superclass)
+        }
 
         val methods = mutableMapOf<String, LoxFunction>()
         stmt.methods.forEach { method ->
@@ -62,7 +76,9 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             val function = LoxFunction(method, environment, isInitializer)
             methods[method.name.lexeme] = function
         }
-        val klass = LoxClass(stmt.name.lexeme, methods)
+        val klass = LoxClass(stmt.name.lexeme, superclass, methods)
+
+        environment = prevEnvironment
         environment.assign(stmt.name, klass)
     }
 
@@ -181,6 +197,17 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         val value = evaluate(expr.value)
         obj.set(expr.name, value)
         return value
+    }
+
+    override fun visitSuperExpr(expr: Expr.Super): Any {
+        // super must be present (Resolver will error if this isn't inside a subclass).
+        val distance = locals[expr]!!
+        val superclass = environment.getAt(distance, "super") as LoxClass
+        // "super" is always 1 environment above "this"
+        val instance = environment.getAt(distance - 1, "this") as LoxInstance
+        val method = superclass.findMethod(expr.method.lexeme)
+            ?: throw RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
+        return method.bind(instance)
     }
 
     override fun visitThisExpr(expr: Expr.This): Any? =
