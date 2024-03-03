@@ -1,5 +1,12 @@
+### Rust
 /rs-lox/target/
 
+### C
+/clox/lox
+/clox/*.o
+/clox/.depend
+
+### Kotlin
 /kt-lox/bin/
 
 .gradle
@@ -20,4 +27,3 @@ out/
 
 ### Mac OS ###
 .DS_Store
-
