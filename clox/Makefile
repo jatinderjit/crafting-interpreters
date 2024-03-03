@@ -13,7 +13,7 @@ OBJECTS = $(SRCS:.c=.o)
 # Rule to compile a specific source file
 .PHONY: %.o
 %.o: %.c $(HDRS)
-	$(CC) $(CFLAGS) -c $< -o $@  # Tab character before -c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Rule to link the final executable
 .PHONY: all
