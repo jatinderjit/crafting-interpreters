@@ -5,6 +5,7 @@
 #include "value.h"
 
 typedef enum {
+  // Reads constant value from Chunk.constants at the given index.
   OP_CONSTANT,
   OP_RETURN
 } OpCode;
@@ -13,7 +14,7 @@ typedef struct {
   int count;
   int capacity;
   uint8_t *code;
-  int* lines;
+  int *lines;
   ValueArray constants;
 } Chunk;
 
