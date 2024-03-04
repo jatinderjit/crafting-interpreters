@@ -16,11 +16,12 @@
 7. Evaluating Expressions ([chapter](https://craftinginterpreters.com/evaluating-expressions.html))
 8. Statements and State ([chapter](https://craftinginterpreters.com/statements-and-state.html), [notes](./notes/08-statements-and-state.md))
 9. Control Flow ([chapter](https://craftinginterpreters.com/control-flow.html))
-10. Functions ([chapter(https://craftinginterpreters.com/functions.html)])
+10. Functions ([chapter](https://craftinginterpreters.com/functions.html))
 11. Resolving and Binding ([chapter](https://craftinginterpreters.com/resolving-and-binding.html))
 12. Classes ([chapter](https://craftinginterpreters.com/classes.html))
 13. Inheritance ([chapter](https://craftinginterpreters.com/inheritance.html))
 
 ### Bytecode Virtual Machine
 
-14. Chunks of Bytecode ([chapter](https://craftinginterpreters.com/chunks-of-bytecode.html))
+14. Chunks of Bytecode ([chapter](https://craftinginterpreters.com/chunks-of-bytecode.html), [notes](./notes/14-chunks-of-bytecode.md))
+15. A Virtual Machine ([chapter](https://craftinginterpreters.com/a-virtual-machine.html), [notes](./notes/15-a-virtual-machine.md))
