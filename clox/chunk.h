@@ -7,6 +7,10 @@
 typedef enum {
   // Reads constant value from Chunk.constants at the given index.
   OP_CONSTANT,
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
   // a -> -a
   OP_NEGATE,
   OP_RETURN
